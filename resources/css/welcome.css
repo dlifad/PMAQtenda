@@ -1,0 +1,32 @@
+/* Custom Styles for PMAQ Tenda */
+
+.wave-bg {
+    background-image: url('/images/background-waves.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+}
+
+.text-pmaq-green {
+    color: #146d4d;
+}
+
+.bg-pmaq-green {
+    background-color: #146d4d;
+}
+
+.hover\:bg-pmaq-green-dark:hover {
+    background-color: #0e513a;
+}
+
+.border-pmaq-green {
+    border-color: #146d4d;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
