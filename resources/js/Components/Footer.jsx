@@ -38,7 +38,7 @@ export default function Footer() {
                         </p>
                         <p className="mb-2">
                             Kotesan Kidul, Kotesan, <br />
-                            Kec. Prambanan, Kab Klaten <br />
+                            Kec. Prambanan, Kab. Klaten <br />
                             Prov. Jawa Tengah 57454
                         </p>
                     </div>

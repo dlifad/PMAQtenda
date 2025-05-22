@@ -11,7 +11,6 @@ import {
     XCircle,
 } from "lucide-react";
 
-// Fungsi formatRupiah dan getImagePath
 const formatRupiah = (price) => {
     return new Intl.NumberFormat("id-ID", {
         style: "currency",
