@@ -36,6 +36,7 @@ class Penyewaan extends Model
         'id_tenda',
         'tanggal_penyewaan',
         'durasi_penyewaan',
+        'jumlah_tenda', // <-- TAMBAHKAN INI
         'biaya',
         'status',
         'catatan',

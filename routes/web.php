@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\PenyewaanController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -20,6 +21,13 @@ use App\Http\Controllers\Petugas\DashboardController as PetugasDashboardControll
 */
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
+
+// RUTE UNTUK PENYEWAAN 
+Route::get('/penyewaan/buat', [PenyewaanController::class, 'create'])->name('penyewaan.create');
+// Rute untuk menampilkan halaman konfirmasi (menerima POST dari form create)
+Route::post('/penyewaan/konfirmasi', [PenyewaanController::class, 'showConfirmation'])->name('penyewaan.showConfirmation');
+// Rute untuk menyimpan data final (menerima POST dari halaman konfirmasi)
+//Route::post('/penyewaan/simpan', [PenyewaanController::class, 'store'])->name('penyewaan.store');
 
 // Rute untuk Dashboard Pengelola
 Route::middleware(['auth', 'verified', 'role:pengelola'])->group(function () {
@@ -42,4 +50,4 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

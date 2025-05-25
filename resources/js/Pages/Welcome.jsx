@@ -162,9 +162,11 @@ export default function Welcome({ tendas }) {
                                                     </div>
                                                 </div>
                                                 <div className="pt-4">
-                                                    <Button variant="primary">
-                                                        Sewa
-                                                    </Button>
+                                                    <Link href={route('penyewaan.create', { tenda_id: tenda.id_tenda })}>
+                                                        <Button variant="primary">
+                                                            Sewa
+                                                        </Button>
+                                                    </Link>
                                                 </div>
                                             </div>
                                         </div>

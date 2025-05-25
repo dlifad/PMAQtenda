@@ -14,8 +14,9 @@ class WelcomeController extends Controller
      *
      * @return \Inertia\Response
      */
-    public function index(Request $request)
+    public function index()
     {
+
         if (Auth::check()) {
             $user = Auth::user();
             if ($user->role === 'pengelola') {
@@ -24,7 +25,11 @@ class WelcomeController extends Controller
                 return redirect()->route('petugas.dashboard');
             }
         }
+
+        $tendas = Tenda::all();
+
         return Inertia::render('Welcome', [
+            'tendas' => $tendas
         ]);
     }
 }
