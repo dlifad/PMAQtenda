@@ -183,7 +183,7 @@ class PenyewaanController extends Controller
                     'durasi_penyewaan' => $validatedDataFromConfirm['durasi_penyewaan'],
                     'jumlah_tenda' => $selectedTenda['jumlah'],
                     'biaya' => $subtotal,
-                    'status' => 'Dipesan',
+                    'status' => 'menunggu',
                     'catatan' => $validatedDataFromConfirm['catatan'],
                 ]);
 
@@ -195,7 +195,10 @@ class PenyewaanController extends Controller
             return redirect()->route('welcome')->with('success', 'Penyewaan berhasil dikonfirmasi! Total Biaya: ' . number_format($totalBiayaKeseluruhan, 0, ',', '.'));
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->route('penyewaan.create')->with('error', 'Gagal menyimpan penyewaan: ' . $e->getMessage())->withInput(Arr::except($validatedDataFromConfirm, ['selected_tendas']));
+            // BARIS INI SANGAT PENTING:
+            \Illuminate\Support\Facades\Log::error('GAGAL SIMPAN PENYEWAAN: ' . $e->getMessage() . "\nFILE: " . $e->getFile() . "\nLINE: " . $e->getLine() . "\nTRACE:\n" . $e->getTraceAsString());
+
+            return redirect()->route('penyewaan.create')->with('error', 'Gagal menyimpan penyewaan. Silakan cek log server untuk detail.')->withInput(Arr::except($validatedDataFromConfirm, ['selected_tendas']));
         }
     }
 }

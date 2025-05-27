@@ -27,62 +27,75 @@ export default function Create({
     const {
         data,
         setData,
-        post,
         processing,
         errors,
         reset,
         recentlySuccessful,
-    } = useForm({
-        nama_lengkap: auth?.user?.name || "",
-        nomor_telepon: auth?.user?.pelanggan?.no_telp || "",
-        alamat_pemasangan: auth?.user?.pelanggan?.alamat || "",
+    } = useForm(
+        () => {
+            const initialSelectedTendas = initialTenda
+                ? [
+                      {
+                          temp_id: `item-${Date.now()}-initial`,
+                          tenda_id: initialTenda.id_tenda,
+                          jumlah: 1,
+                          harga: initialTenda.harga,
+                          stok_tersedia: initialTenda.stok_tersedia,
+                      },
+                  ]
+                : allTendas && allTendas.length > 0
+                ? [
+                      {
+                          temp_id: `item-${Date.now()}-default`,
+                          tenda_id: allTendas[0].id_tenda,
+                          jumlah: 1,
+                          harga: allTendas[0].harga,
+                          stok_tersedia: allTendas[0].stok_tersedia,
+                      },
+                  ]
+                : [];
 
-        tanggal_sewa: new Date().toISOString().split("T")[0],
-        durasi_penyewaan: 1,
-        catatan: "",
-
-        selected_tendas: initialTenda
-            ? [
-                  {
-                      temp_id: `item-${Date.now()}`,
-                      tenda_id: initialTenda.id_tenda,
-                      jumlah: 1,
-                      harga: initialTenda.harga,
-                      stok_tersedia: initialTenda.stok_tersedia,
-                  },
-              ]
-            : allTendas && allTendas.length > 0
-            ? [
-                  {
-                      temp_id: `item-${Date.now()}`,
-                      tenda_id: allTendas[0].id_tenda,
-                      jumlah: 1,
-                      harga: allTendas[0].harga,
-                      stok_tersedia: allTendas[0].stok_tersedia,
-                  },
-              ]
-            : [],
-    });
-
-    useEffect(() => {
-        if (recentlySuccessful) {
-            reset();
-            setData(
-                "selected_tendas",
-                allTendas && allTendas.length > 0
-                    ? [
-                          {
-                              temp_id: `item-${Date.now()}`,
-                              tenda_id: allTendas[0].id_tenda,
-                              jumlah: 1,
-                              harga: allTendas[0].harga,
-                              stok_tersedia: allTendas[0].stok_tersedia,
-                          },
-                      ]
-                    : []
-            );
+            return {
+                nama_lengkap:"",
+                nomor_telepon:"",
+                alamat_pemasangan:"",
+                tanggal_sewa: "",
+                durasi_penyewaan: "",
+                catatan: "",
+                selected_tendas: initialSelectedTendas,
+            };
+        },
+        {
+            remember: "penyewaanFormData",
         }
-    }, [recentlySuccessful, allTendas, reset, setData]);
+    );
+
+useEffect(() => {
+    console.log(
+        "Create.jsx - useEffect[recentlySuccessful] dijalankan. Nilai recentlySuccessful:",
+        recentlySuccessful
+    );
+    if (recentlySuccessful) {
+        console.log(
+            "Create.jsx - recentlySuccessful adalah TRUE, form akan di-reset."
+        );
+        reset();
+        setData(
+            "selected_tendas",
+            allTendas && allTendas.length > 0
+                ? [
+                      {
+                          temp_id: `item-${Date.now()}-reset`,
+                          tenda_id: allTendas[0].id_tenda,
+                          jumlah: 1,
+                          harga: allTendas[0].harga,
+                          stok_tersedia: allTendas[0].stok_tersedia,
+                      },
+                  ]
+                : []
+        );
+    }
+}, [recentlySuccessful, allTendas, reset, setData]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -91,6 +104,8 @@ export default function Create({
 
     const handleTendaItemChange = (index, field, value) => {
         const newSelectedTendas = [...data.selected_tendas];
+        if (!newSelectedTendas[index]) return;
+
         newSelectedTendas[index][field] = value;
         if (field === "tenda_id") {
             const selectedTendaData = allTendas.find(
@@ -100,6 +115,10 @@ export default function Create({
                 newSelectedTendas[index].harga = selectedTendaData.harga;
                 newSelectedTendas[index].stok_tersedia =
                     selectedTendaData.stok_tersedia;
+                newSelectedTendas[index].jumlah = 1;
+            } else {
+                newSelectedTendas[index].harga = 0;
+                newSelectedTendas[index].stok_tersedia = 0;
                 newSelectedTendas[index].jumlah = 1;
             }
         }
@@ -137,7 +156,7 @@ export default function Create({
             nomor_telepon: data.nomor_telepon,
             alamat_pemasangan: data.alamat_pemasangan,
             tanggal_sewa: data.tanggal_sewa,
-            durasi_penyewaan: data.durasi_penyewaan,
+            durasi_penyewaan: parseInt(data.durasi_penyewaan, 10) || 1,
             catatan: data.catatan,
             selected_tendas: data.selected_tendas.map((item) => ({
                 tenda_id: item.tenda_id,
@@ -158,11 +177,10 @@ export default function Create({
             <Head title="Formulir Penyewaan Tenda" />
             <div className="min-h-screen bg-gray-100">
                 <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
-                    <Navbar auth={auth} />{" "}
+                    <Navbar auth={auth} />
                 </div>
 
                 <main className="pt-24 pb-12">
-                    {" "}
                     <div className="container mx-auto px-4">
                         <form
                             onSubmit={submitPenyewaan}
@@ -332,7 +350,7 @@ export default function Create({
                                     <h2 className="text-xl font-semibold text-gray-700">
                                         Pilihan Tenda
                                     </h2>
-                                    <Button
+                                    {/* <Button
                                         type="button"
                                         variant="success"
                                         size="small"
@@ -342,7 +360,7 @@ export default function Create({
                                         }
                                     >
                                         + Tambah Tenda
-                                    </Button>
+                                    </Button> */}
                                 </div>
 
                                 <div className="space-y-4">
@@ -350,11 +368,6 @@ export default function Create({
                                         const subtotal =
                                             (parseFloat(item.harga) || 0) *
                                             (parseInt(item.jumlah, 10) || 0);
-                                        const currentTendaStok =
-                                            allTendas.find(
-                                                (t) =>
-                                                    t.id_tenda == item.tenda_id
-                                            )?.stok_tersedia || 0;
                                         const jumlahInputError =
                                             errors[
                                                 `selected_tendas.${index}.jumlah`
@@ -368,7 +381,6 @@ export default function Create({
                                                 key={item.temp_id || index}
                                                 className="p-3 border rounded-md bg-gray-50 space-y-3 md:space-y-0 md:grid md:grid-cols-12 md:gap-3 md:items-end"
                                             >
-                                                {/* Pilihan Tenda (Dropdown) */}
                                                 <div className="md:col-span-4">
                                                     <InputLabel
                                                         htmlFor={`tenda_id_${index}`}
@@ -376,7 +388,6 @@ export default function Create({
                                                     />
                                                     <select
                                                         id={`tenda_id_${index}`}
-                                                        name={`tenda_id_${index}`}
                                                         value={item.tenda_id}
                                                         onChange={(e) =>
                                                             handleTendaItemChange(
@@ -423,7 +434,6 @@ export default function Create({
                                                     />
                                                 </div>
 
-                                                {/* Harga */}
                                                 <div className="md:col-span-2">
                                                     <InputLabel
                                                         htmlFor={`harga_${index}`}
@@ -441,7 +451,6 @@ export default function Create({
                                                     />
                                                 </div>
 
-                                                {/* Jumlah */}
                                                 <div className="md:col-span-2">
                                                     <InputLabel
                                                         htmlFor={`jumlah_${index}`}
@@ -464,7 +473,6 @@ export default function Create({
                                                         }
                                                         className="mt-1 block w-full"
                                                         min="1"
-                                                        max={item.stok_tersedia} // Batasi maksimal sesuai stok
                                                         disabled={processing}
                                                     />
                                                     {item.jumlah >
@@ -488,7 +496,6 @@ export default function Create({
                                                     />
                                                 </div>
 
-                                                {/* Subtotal */}
                                                 <div className="md:col-span-3">
                                                     <InputLabel
                                                         htmlFor={`subtotal_${index}`}
@@ -506,7 +513,6 @@ export default function Create({
                                                     />
                                                 </div>
 
-                                                {/* Tombol Hapus */}
                                                 <div className="md:col-span-1 flex items-end justify-end md:justify-start">
                                                     {data.selected_tendas
                                                         .length > 1 && (
