@@ -24,6 +24,7 @@ export default {
                 'sec-color' : '#2E7D32',
                 'nav-footer': '#C4E0C3',
                 'bg-login': '#C4E0C3',
+                'bg-card': '#F5F5F5',
                 'color-line' : '#88D4AB',
                 'dark-gray': '#2E2E2E',
                 'dark-gray-hover': '#4A4A4A',

@@ -27,7 +27,7 @@ export default function Confirm({
     errors: pageErrors,
 }) {
     const [agreedToTerms, setAgreedToTerms] = useState(false);
-    const [processing, setProcessing] = useState(false); // State untuk loading tombol konfirmasi
+    const [processing, setProcessing] = useState(false);
 
     const handleFinalConfirm = () => {
         if (!agreedToTerms) {
@@ -38,11 +38,8 @@ export default function Confirm({
         }
         setProcessing(true);
         router.post(route("penyewaan.store"), rawDataToStore, {
-            onFinish: () => setProcessing(false), // Reset processing state saat selesai (sukses atau error)
+            onFinish: () => setProcessing(false),
             onError: (errors) => {
-                // Jika ada error dari backend saat store (misal stok habis tiba2)
-                // Biasanya Inertia akan redirect back jika ada validation error.
-                // Jika error umum, bisa tampilkan alert atau notifikasi.
                 if (errors.error) {
                     alert(errors.error);
                 } else if (Object.keys(errors).length > 0) {
@@ -53,8 +50,6 @@ export default function Confirm({
                 console.error("Error saat konfirmasi akhir:", errors);
             },
             onSuccess: (page) => {
-                // Jika controller redirect dengan flash success, akan ditangani oleh layout utama
-                // Jika tidak, Anda bisa menampilkan pesan di sini
                 if (page.props.flash && page.props.flash.success) {
                     // Sudah ditangani global (misal di Navbar atau Layout)
                 } else {
@@ -108,13 +103,13 @@ export default function Confirm({
 
                 <main className="pt-24 pb-12">
                     <div className="container mx-auto px-4 max-w-3xl">
-                        <div className="bg-white p-6 md:p-8 rounded-lg shadow-lg">
-                            <h1 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-6">
+                        <div>
+                            <h1 className="text-2xl md:text-3xl font-bold text-center text-dark-gray mb-6">
                                 Konfirmasi Penyewaan
                             </h1>
 
                             <div
-                                className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded relative mb-6"
+                                className="bg-[#A0D995]/20 border-l-8 border-[#A0D995] text-dark-gray px-4 py-3 rounded relative mb-6"
                                 role="alert"
                             >
                                 <p className="text-sm">
@@ -126,63 +121,77 @@ export default function Confirm({
                             </div>
 
                             {/* Data Penyewa */}
-                            <section className="mb-6">
-                                <h2 className="text-xl font-semibold text-gray-700 mb-3 pb-2 border-b">
+                            <section className="mb-6 bg-bg-card p-6 md:p-8 rounded-lg shadow-lg">
+                                <h2 className="text-xl font-bold text-dark-gray mb-3 pb-2 border-b">
                                     Penyewa
                                 </h2>
-                                <div className="space-y-1 text-gray-800">
-                                    <p>
-                                        <strong>Nama Lengkap:</strong>{" "}
-                                        {penyewa.nama_lengkap}
-                                    </p>
-                                    <p>
-                                        <strong>Nomor Telepon:</strong>{" "}
-                                        {penyewa.nomor_telepon}
-                                    </p>
+                                <div className="space-y-4 text-sm text-dark-gray">
+                                    <div className="grid grid-cols-[150px_1fr] items-center border-b pb-2">
+                                        <span className="font-semibold">
+                                            Nama lengkap
+                                        </span>
+                                        <span>{penyewa.nama_lengkap}</span>
+                                    </div>
+                                    <div className="grid grid-cols-[150px_1fr] items-center border-b pb-2">
+                                        <span className="font-semibold">
+                                            Nomor Telepon
+                                        </span>
+                                        <span>{penyewa.nomor_telepon}</span>
+                                    </div>
                                 </div>
                             </section>
 
                             {/* Alamat Pemasangan */}
-                            <section className="mb-6">
-                                <h2 className="text-xl font-semibold text-gray-700 mb-3 pb-2 border-b">
+                            <section className="mb-6 bg-bg-card p-6 md:p-8 rounded-lg shadow-lg">
+                                <h2 className="text-xl font-bold text-dark-gray mb-3 pb-2 border-b">
                                     Alamat Pemasangan
                                 </h2>
-                                <p className="text-gray-800 whitespace-pre-line">
-                                    {alamat_pemasangan}
-                                </p>
+                                <div className="border-b pb-2">
+                                    <p className="text-dark-gray whitespace-pre-line">
+                                        {alamat_pemasangan}
+                                    </p>
+                                </div>
                             </section>
 
                             {/* Rincian Penyewaan */}
-                            <section className="mb-6">
-                                <h2 className="text-xl font-semibold text-gray-700 mb-3 pb-2 border-b">
+                            <section className="mb-6 bg-bg-card p-6 md:p-8 rounded-lg shadow-lg">
+                                <h2 className="text-xl font-bold text-dark-gray mb-3 pb-2 border-b">
                                     Rincian Penyewaan
                                 </h2>
-                                <div className="space-y-1 text-gray-800">
-                                    <p>
-                                        <strong>Tanggal Sewa:</strong>{" "}
-                                        {
-                                            rincian_penyewaan.tanggal_sewa_formatted
-                                        }
-                                    </p>
-                                    <p>
-                                        <strong>Durasi:</strong>{" "}
-                                        {rincian_penyewaan.durasi}
-                                    </p>
+                                <div className="space-y-4 text-sm text-dark-gray">
+                                    <div className="grid grid-cols-[150px_1fr] items-start border-b pb-2">
+                                        <span className="font-semibold">
+                                            Tanggal Sewa
+                                        </span>
+                                        <span>
+                                            {rincian_penyewaan.tanggal_sewa_formatted}
+                                        </span>
+                                    </div>
+                                    <div className="grid grid-cols-[150px_1fr] items-start border-b pb-2">
+                                        <span className="font-semibold">
+                                            Durasi
+                                        </span>
+                                        <span>{rincian_penyewaan.durasi}</span>
+                                    </div>
                                     {rincian_penyewaan.catatan && (
-                                        <p>
-                                            <strong>Catatan:</strong>{" "}
-                                            {rincian_penyewaan.catatan}
-                                        </p>
+                                        <div className="grid grid-cols-[150px_1fr] items-start border-b pb-2">
+                                            <span className="font-semibold">
+                                                Catatan
+                                            </span>
+                                            <span>
+                                                {rincian_penyewaan.catatan}
+                                            </span>
+                                        </div>
                                     )}
                                 </div>
                             </section>
 
                             {/* Rincian Biaya */}
-                            <section className="mb-6">
-                                <h2 className="text-xl font-semibold text-gray-700 mb-3 pb-2 border-b">
+                            <section className="mb-6 bg-bg-card p-6 md:p-8 rounded-lg shadow-lg">
+                                <h2 className="text-xl font-semibold text-dark-gray mb-3 pb-2 border-b">
                                     Rincian Biaya
                                 </h2>
-                                <table className="w-full text-left text-gray-800">
+                                <table className="w-full text-left text-dark-gray">
                                     <thead>
                                         <tr className="border-b">
                                             <th className="py-2 font-semibold">
@@ -236,45 +245,47 @@ export default function Confirm({
                                         </tr>
                                     </tfoot>
                                 </table>
+
+                                {/* Catatan Penting */}
+                                <div
+                                    className="bg-[#FFEB3B]/20 border-l-8 border-[#FFEB3B] text-dark-gray px-4 py-3 rounded relative mb-6"
+                                    role="alert"
+                                >
+                                    <strong className="font-bold">
+                                        Catatan Penting:{" "}
+                                    </strong>
+                                    <br />
+                                    <span className="block sm:inline">
+                                        Pembayaran dilakukan setelah proses
+                                        pembongkaran tenda selesai.
+                                    </span>
+                                </div>
                             </section>
 
-                            {/* Catatan Penting */}
-                            <div
-                                className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded relative mb-6"
-                                role="alert"
-                            >
-                                <strong className="font-bold">
-                                    Catatan Penting:{" "}
-                                </strong>
-                                <span className="block sm:inline">
-                                    Pembayaran dilakukan setelah proses
-                                    pembongkaran tenda selesai.
-                                </span>
-                            </div>
-
                             {/* Syarat dan Ketentuan */}
-                            <section className="mb-6">
-                                <h2 className="text-xl font-semibold text-gray-700 mb-3 pb-2 border-b">
+                            <section className="mb-6 bg-bg-card p-6 md:p-8 rounded-lg shadow-lg">
+                                <h2 className="text-xl font-semibold text-dark-gray mb-3 pb-2 border-b">
                                     Syarat dan Ketentuan
                                 </h2>
-                                <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
+                                <ul className="list-disc pl-6 space-y-1 text-sm text-dark-gray leading-snug">
                                     <li>
                                         Pembatalan sebelum petugas lapangan
                                         datang untuk melakukan pemasangan tidak
-                                        akan dikenakan biaya.
+                                        akan dikenakan biaya
                                     </li>
                                     <li>
-                                        Jika pembatalan saat petugas datang
+                                        Pembatalan pada saat petugas datang
                                         untuk melakukan pemasangan dikenakan
-                                        biaya 20% dari total biaya sewa.
+                                        biaya 20% dari total biaya sewa
                                     </li>
                                     <li>
-                                        Kerusakan tenda yang fatal saat sewa
-                                        akan dikenakan biaya tambahan sesuai
-                                        tingkat kerusakan, kecuali kerusakan
-                                        dikarenakan bencana alam.
+                                        Kerusakan tenda pada saat masa sewa akan
+                                        dikenakan biaya tambahan sesuai tingkat
+                                        kerusakan, kecuali kerusakan dikarenakan
+                                        bencana alam.
                                     </li>
                                 </ul>
+
                                 <div className="mt-4">
                                     <label
                                         htmlFor="terms"
@@ -290,7 +301,7 @@ export default function Confirm({
                                                 )
                                             }
                                         />
-                                        <span className="ml-2 text-sm text-gray-700">
+                                        <span className="ml-2 text-sm text-dark-gray">
                                             Saya telah membaca dan menyetujui
                                             syarat dan ketentuan yang berlaku.
                                         </span>
@@ -299,7 +310,7 @@ export default function Confirm({
                             </section>
 
                             {/* Tombol Aksi */}
-                            <div className="flex items-center justify-between pt-4 border-t mt-6">
+                            <div className="flex items-center justify-end pt-4 border-t mt-6 space-x-5">
                                 <Link href={route("penyewaan.create")}>
                                     <Button
                                         type="button"
@@ -311,13 +322,13 @@ export default function Confirm({
                                 </Link>
                                 <Button
                                     type="button"
-                                    variant="primary"
+                                    variant="secondary"
                                     onClick={handleFinalConfirm}
                                     disabled={!agreedToTerms || processing}
                                 >
                                     {processing
                                         ? "Memproses..."
-                                        : "Konfirmasi & Ajukan Sewa \u2192"}
+                                        : "Konfirmasi \u2192"}
                                 </Button>
                             </div>
                             {Object.keys(pageErrors || {}).length > 0 && (

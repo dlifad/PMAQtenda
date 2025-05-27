@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Laravel\Sanctum\HasApiTokens;
+// use Illuminate\Database\Eloquent\Relations\HasMany; // Tidak terpakai langsung di sini
+// use Illuminate\Foundation\Auth\User as Authenticatable; // Tidak relevan untuk model ini
+// use Laravel\Sanctum\HasApiTokens; // Tidak relevan untuk model ini
 
 class Penyewaan extends Model
 {
@@ -24,7 +24,21 @@ class Penyewaan extends Model
      *
      * @var string
      */
-    protected $primaryKey = 'id_penyewaan';
+    protected $primaryKey = 'id_penyewaan'; // Tetap
+
+    /**
+     * Menandakan jika ID tidak auto-increment.
+     *
+     * @var bool
+     */
+    public $incrementing = false; // PENTING: Set ke false karena ID sekarang custom string
+
+    /**
+     * Tipe data dari primary key.
+     *
+     * @var string
+     */
+    protected $keyType = 'string'; // PENTING: Set ke string
 
     /**
      * Atribut yang dapat diisi
@@ -32,6 +46,7 @@ class Penyewaan extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'id_penyewaan', // PENTING: Tambahkan id_penyewaan ke fillable
         'id_pelanggan',
         'id_tenda',
         'tanggal_penyewaan',
@@ -63,6 +78,7 @@ class Penyewaan extends Model
      */
     public function jadwal()
     {
+        // Nama foreign key di tabel jadwal, dan local key di tabel penyewaan
         return $this->hasOne(Jadwal::class, 'id_penyewaan', 'id_penyewaan');
     }
 }
