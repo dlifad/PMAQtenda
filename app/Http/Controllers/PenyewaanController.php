@@ -9,15 +9,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Arr;
 
 class PenyewaanController extends Controller
 {
-    /**
-     * Menampilkan form pembuatan penyewaan.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Inertia\Response
-     */
     public function create(Request $request)
     {
         $allTendas = Tenda::where('jumlah', '>', 0)->orderBy('nama_tenda')->get(['id_tenda', 'nama_tenda', 'harga', 'isi_paket', 'jumlah as stok_tersedia']);
@@ -31,18 +26,15 @@ class PenyewaanController extends Controller
         return Inertia::render('Penyewaan/Create', [
             'allTendas' => $allTendas,
             'initialTenda' => $initialTenda,
-            'csrf_token' => csrf_token(),
         ]);
     }
 
     /**
-     * Menyimpan data penyewaan baru.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
+     * Memvalidasi data dan menampilkan halaman konfirmasi.
      */
-    public function store(Request $request)
+    public function showConfirmation(Request $request)
     {
+        // Validasi data yang sama seperti di method store
         $validator = Validator::make($request->all(), [
             'nama_lengkap' => 'required|string|max:255',
             'nomor_telepon' => 'required|string|max:20',
@@ -53,48 +45,131 @@ class PenyewaanController extends Controller
             'selected_tendas' => 'required|array|min:1',
             'selected_tendas.*.tenda_id' => 'required|exists:tenda,id_tenda',
             'selected_tendas.*.jumlah' => 'required|integer|min:1',
-        ], [
-            'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
-            'nomor_telepon.required' => 'Nomor telepon wajib diisi.',
-            'alamat_pemasangan.required' => 'Alamat pemasangan wajib diisi.',
-            'tanggal_sewa.required' => 'Tanggal sewa wajib diisi.',
-            'tanggal_sewa.date' => 'Format tanggal sewa tidak valid.',
-            'tanggal_sewa.after_or_equal' => 'Tanggal sewa tidak boleh kurang dari hari ini.',
-            'durasi_penyewaan.required' => 'Durasi penyewaan wajib diisi.',
-            'durasi_penyewaan.integer' => 'Durasi penyewaan harus berupa angka.',
-            'durasi_penyewaan.min' => 'Durasi penyewaan minimal 1 hari.',
-            'selected_tendas.required' => 'Minimal pilih satu tenda.',
-            'selected_tendas.*.tenda_id.required' => 'Pilihan tenda wajib diisi.',
-            'selected_tendas.*.tenda_id.exists' => 'Tenda yang dipilih tidak valid.',
-            'selected_tendas.*.jumlah.required' => 'Jumlah untuk setiap tenda wajib diisi.',
-            'selected_tendas.*.jumlah.min' => 'Jumlah minimal untuk setiap tenda adalah 1.',
         ]);
 
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        foreach ($request->selected_tendas as $index => $selectedTenda) {
-            $tendaModel = Tenda::find($selectedTenda['tenda_id']);
-            if ($tendaModel->jumlah < $selectedTenda['jumlah']) {
+        // Validasi stok tenda lagi (penting jika ada race condition atau data lama)
+        $validatedData = $validator->validated();
+        foreach ($validatedData['selected_tendas'] as $index => $selectedTendaItem) {
+            $tendaModel = Tenda::find($selectedTendaItem['tenda_id']);
+            if ($tendaModel->jumlah < $selectedTendaItem['jumlah']) {
                 $validator->errors()->add("selected_tendas.{$index}.jumlah", "Stok tenda {$tendaModel->nama_tenda} tidak mencukupi (tersedia: {$tendaModel->jumlah}).");
             }
         }
-         if ($validator->fails()) {
+        if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+
+        // Siapkan data untuk ditampilkan di halaman konfirmasi
+        $displayData = [
+            'penyewa' => [
+                'nama_lengkap' => $validatedData['nama_lengkap'],
+                'nomor_telepon' => $validatedData['nomor_telepon'],
+            ],
+            'alamat_pemasangan' => $validatedData['alamat_pemasangan'],
+            'rincian_penyewaan' => [
+                'tanggal_sewa_formatted' => \Carbon\Carbon::parse($validatedData['tanggal_sewa'])->isoFormat('D MMMM YYYY'),
+                'tanggal_sewa_raw' => $validatedData['tanggal_sewa'],
+                'durasi' => $validatedData['durasi_penyewaan'] . ' hari',
+                'durasi_raw' => $validatedData['durasi_penyewaan'],
+                'catatan' => $validatedData['catatan'],
+            ],
+            'rincian_biaya' => [
+                'items' => [],
+                'total_biaya' => 0,
+            ],
+        ];
+
+        $totalBiayaKeseluruhan = 0;
+        $itemsForStore = [];
+
+        foreach ($validatedData['selected_tendas'] as $item) {
+            $tenda = Tenda::find($item['tenda_id']);
+            if ($tenda) {
+                $subtotal = $tenda->harga * $item['jumlah'];
+                $displayData['rincian_biaya']['items'][] = [
+                    'nama_tenda' => $tenda->nama_tenda,
+                    'jumlah' => $item['jumlah'],
+                    'harga_formatted' => number_format($tenda->harga, 0, ',', '.'),
+                    'subtotal_formatted' => number_format($subtotal, 0, ',', '.'),
+                    'tenda_id' => $tenda->id_tenda,
+                    'harga_raw' => $tenda->harga,
+                    'subtotal_raw' => $subtotal,
+                ];
+                $totalBiayaKeseluruhan += $subtotal;
+
+                $itemsForStore[] = [
+                    'tenda_id' => $tenda->id_tenda,
+                    'jumlah' => $item['jumlah'],
+                ];
+            }
+        }
+        $displayData['rincian_biaya']['total_biaya_formatted'] = number_format($totalBiayaKeseluruhan, 0, ',', '.');
+        $displayData['rincian_biaya']['total_biaya_raw'] = $totalBiayaKeseluruhan;
+
+        $rawDataToStore = [
+            'nama_lengkap' => $validatedData['nama_lengkap'],
+            'nomor_telepon' => $validatedData['nomor_telepon'],
+            'alamat_pemasangan' => $validatedData['alamat_pemasangan'],
+            'tanggal_sewa' => $validatedData['tanggal_sewa'],
+            'durasi_penyewaan' => $validatedData['durasi_penyewaan'],
+            'catatan' => $validatedData['catatan'],
+            'selected_tendas' => $itemsForStore,
+        ];
+
+
+        return Inertia::render('Penyewaan/Confirm', [
+            'confirmationData' => $displayData,
+            'rawDataToStore' => $rawDataToStore,
+        ]);
+    }
+
+
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'nama_lengkap' => 'required|string|max:255',
+            'nomor_telepon' => 'required|string|max:20',
+            'alamat_pemasangan' => 'required|string',
+            'tanggal_sewa' => 'required|date',
+            'durasi_penyewaan' => 'required|integer|min:1',
+            'catatan' => 'nullable|string',
+            'selected_tendas' => 'required|array|min:1',
+            'selected_tendas.*.tenda_id' => 'required|exists:tenda,id_tenda',
+            'selected_tendas.*.jumlah' => 'required|integer|min:1',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->route('penyewaan.create')->withErrors($validator)->withInput()->with('error', 'Terjadi kesalahan validasi saat konfirmasi akhir.');
+        }
+
+        $validatedDataFromConfirm = $validator->validated();
+
+        foreach ($validatedDataFromConfirm['selected_tendas'] as $index => $selectedTendaItem) {
+            $tendaModel = Tenda::find($selectedTendaItem['tenda_id']);
+            if ($tendaModel->jumlah < $selectedTendaItem['jumlah']) {
+                return redirect()->route('penyewaan.create')
+                    ->with('error', "Stok tenda {$tendaModel->nama_tenda} berubah dan tidak mencukupi.")
+                    ->withInput(Arr::except($validatedDataFromConfirm, ['selected_tendas']));
+            }
         }
 
 
         DB::beginTransaction();
         try {
             $pelanggan = Pelanggan::create([
-                'nama' => $request->nama_lengkap,
-                'no_telp' => $request->nomor_telepon,
-                'alamat' => $request->alamat_pemasangan,
+                'nama' => $validatedDataFromConfirm['nama_lengkap'],
+                'no_telp' => $validatedDataFromConfirm['nomor_telepon'],
+                'alamat' => $validatedDataFromConfirm['alamat_pemasangan'],
             ]);
 
             $totalBiayaKeseluruhan = 0;
-            foreach ($request->selected_tendas as $selectedTenda) {
+
+            foreach ($validatedDataFromConfirm['selected_tendas'] as $selectedTenda) {
                 $tendaModel = Tenda::find($selectedTenda['tenda_id']);
                 if (!$tendaModel) continue;
 
@@ -104,24 +179,23 @@ class PenyewaanController extends Controller
                 Penyewaan::create([
                     'id_pelanggan' => $pelanggan->id_pelanggan,
                     'id_tenda' => $tendaModel->id_tenda,
-                    'tanggal_penyewaan' => $request->tanggal_sewa,
-                    'durasi_penyewaan' => $request->durasi_penyewaan,
+                    'tanggal_penyewaan' => $validatedDataFromConfirm['tanggal_sewa'],
+                    'durasi_penyewaan' => $validatedDataFromConfirm['durasi_penyewaan'],
                     'jumlah_tenda' => $selectedTenda['jumlah'],
                     'biaya' => $subtotal,
-                    'status' => 'menunggu',
-                    'catatan' => $request->catatan,
+                    'status' => 'Dipesan',
+                    'catatan' => $validatedDataFromConfirm['catatan'],
                 ]);
 
                 $tendaModel->decrement('jumlah', $selectedTenda['jumlah']);
             }
 
             DB::commit();
-
-            return redirect()->route('welcome')->with('success', 'Penyewaan berhasil diajukan! Total biaya: ' . number_format($totalBiayaKeseluruhan, 0, ',', '.'));
-
+            // Ganti 'welcome' dengan rute halaman sukses jika ada
+            return redirect()->route('welcome')->with('success', 'Penyewaan berhasil dikonfirmasi! Total Biaya: ' . number_format($totalBiayaKeseluruhan, 0, ',', '.'));
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat memproses penyewaan: ' . $e->getMessage())->withInput();
+            return redirect()->route('penyewaan.create')->with('error', 'Gagal menyimpan penyewaan: ' . $e->getMessage())->withInput(Arr::except($validatedDataFromConfirm, ['selected_tendas']));
         }
     }
 }

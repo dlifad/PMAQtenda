@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Head, Link, useForm, router } from "@inertiajs/react"; // Tambahkan router
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout"; // Atau GuestLayout jika tidak perlu login
-import Navbar from "@/Components/Navbar"; // Asumsi Anda punya ini
-import Footer from "@/Components/Footer"; // Asumsi Anda punya ini
+import { Head, Link, useForm, router } from "@inertiajs/react";
+import Navbar from "@/Components/Navbar";
+import Footer from "@/Components/Footer";
 import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
-import TextArea from "@/Components/TextArea"; // Anda mungkin perlu membuat komponen ini
+import TextArea from "@/Components/TextArea";
 import Button from "@/Components/Button";
 import InputError from "@/Components/InputError";
-import { Trash2 } from "lucide-react"; // Icon sampah
+import { Trash2 } from "lucide-react";
 
-// Fungsi formatRupiah (bisa diimpor dari file utilitas jika ada)
 const formatRupiah = (price) => {
     return new Intl.NumberFormat("id-ID", {
         style: "currency",
@@ -35,26 +33,21 @@ export default function Create({
         reset,
         recentlySuccessful,
     } = useForm({
-        // Data Penyewa
-        nama_lengkap: auth?.user?.name || "", // Pre-fill jika user login dan punya data pelanggan terkait
-        nomor_telepon: auth?.user?.pelanggan?.no_telp || "", // Sesuaikan dengan struktur data user Anda
+        nama_lengkap: auth?.user?.name || "",
+        nomor_telepon: auth?.user?.pelanggan?.no_telp || "",
         alamat_pemasangan: auth?.user?.pelanggan?.alamat || "",
 
-        // Data Penyewaan (umum)
         tanggal_sewa: new Date().toISOString().split("T")[0],
         durasi_penyewaan: 1,
         catatan: "",
 
-        // Pilihan Tenda (array of objects)
         selected_tendas: initialTenda
             ? [
                   {
-                      // ID unik sementara untuk key React, bukan untuk dikirim ke backend
-                      // Bisa diganti dengan index saat mapping jika tidak butuh id stabil
                       temp_id: `item-${Date.now()}`,
                       tenda_id: initialTenda.id_tenda,
                       jumlah: 1,
-                      harga: initialTenda.harga, // Harga dari data tenda
+                      harga: initialTenda.harga,
                       stok_tersedia: initialTenda.stok_tersedia,
                   },
               ]
@@ -68,14 +61,12 @@ export default function Create({
                       stok_tersedia: allTendas[0].stok_tersedia,
                   },
               ]
-            : [], // Default jika tidak ada initialTenda atau allTendas
+            : [],
     });
 
-    // Efek untuk mereset form setelah berhasil submit
     useEffect(() => {
         if (recentlySuccessful) {
             reset();
-            // Set ulang selected_tendas ke default jika perlu
             setData(
                 "selected_tendas",
                 allTendas && allTendas.length > 0
@@ -101,17 +92,14 @@ export default function Create({
     const handleTendaItemChange = (index, field, value) => {
         const newSelectedTendas = [...data.selected_tendas];
         newSelectedTendas[index][field] = value;
-
-        // Jika field yang berubah adalah tenda_id, update harga dan stok
         if (field === "tenda_id") {
             const selectedTendaData = allTendas.find(
-                (t) => t.id_tenda == value // Gunakan == karena value dari select mungkin string
+                (t) => t.id_tenda == value
             );
             if (selectedTendaData) {
                 newSelectedTendas[index].harga = selectedTendaData.harga;
                 newSelectedTendas[index].stok_tersedia =
                     selectedTendaData.stok_tersedia;
-                // Reset jumlah ke 1 jika tenda berubah untuk menghindari masalah stok
                 newSelectedTendas[index].jumlah = 1;
             }
         }
@@ -126,8 +114,8 @@ export default function Create({
         setData("selected_tendas", [
             ...data.selected_tendas,
             {
-                temp_id: `item-${Date.now()}`, // ID unik sementara
-                tenda_id: allTendas[0].id_tenda, // Default ke tenda pertama
+                temp_id: `item-${Date.now()}`,
+                tenda_id: allTendas[0].id_tenda,
                 jumlah: 1,
                 harga: allTendas[0].harga,
                 stok_tersedia: allTendas[0].stok_tersedia,
@@ -144,8 +132,6 @@ export default function Create({
 
     const submitPenyewaan = (e) => {
         e.preventDefault();
-        // Data yang akan dikirim untuk direview, struktur ini harus sama
-        // dengan yang diharapkan oleh controller untuk validasi awal.
         const dataToReview = {
             nama_lengkap: data.nama_lengkap,
             nomor_telepon: data.nomor_telepon,
@@ -160,29 +146,23 @@ export default function Create({
         };
 
         router.post(route("penyewaan.showConfirmation"), dataToReview, {
-            preserveScroll: true, // Agar tidak scroll ke atas jika ada error validasi dari showConfirmation
+            preserveScroll: true,
             onError: (errors) => {
-                // Error validasi dari showConfirmation akan otomatis ditangani
-                // dan ditampilkan oleh komponen InputError di form ini.
                 console.error("Error saat menuju halaman konfirmasi:", errors);
             },
         });
     };
 
     return (
-        // Ganti GuestLayout dengan layout yang sesuai, misal ada Navbar dan Footer global
-        // Untuk sementara, saya bungkus dengan div biasa dan panggil Navbar & Footer manual
         <>
             <Head title="Formulir Penyewaan Tenda" />
             <div className="min-h-screen bg-gray-100">
                 <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
                     <Navbar auth={auth} />{" "}
-                    {/* Kirim prop auth jika Navbar membutuhkannya */}
                 </div>
 
                 <main className="pt-24 pb-12">
                     {" "}
-                    {/* Padding atas untuk Navbar fixed */}
                     <div className="container mx-auto px-4">
                         <form
                             onSubmit={submitPenyewaan}

@@ -27,7 +27,7 @@ Route::get('/penyewaan/buat', [PenyewaanController::class, 'create'])->name('pen
 // Rute untuk menampilkan halaman konfirmasi (menerima POST dari form create)
 Route::post('/penyewaan/konfirmasi', [PenyewaanController::class, 'showConfirmation'])->name('penyewaan.showConfirmation');
 // Rute untuk menyimpan data final (menerima POST dari halaman konfirmasi)
-//Route::post('/penyewaan/simpan', [PenyewaanController::class, 'store'])->name('penyewaan.store');
+Route::post('/penyewaan/simpan', [PenyewaanController::class, 'store'])->name('penyewaan.store');
 
 // Rute untuk Dashboard Pengelola
 Route::middleware(['auth', 'verified', 'role:pengelola'])->group(function () {
