@@ -24,10 +24,11 @@ Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
 // RUTE UNTUK PENYEWAAN 
 Route::get('/penyewaan/buat', [PenyewaanController::class, 'create'])->name('penyewaan.create');
-// Rute untuk menampilkan halaman konfirmasi (menerima POST dari form create)
 Route::post('/penyewaan/konfirmasi', [PenyewaanController::class, 'showConfirmation'])->name('penyewaan.showConfirmation');
-// Rute untuk menyimpan data final (menerima POST dari halaman konfirmasi)
 Route::post('/penyewaan/simpan', [PenyewaanController::class, 'store'])->name('penyewaan.store');
+Route::get('/penyewaan/berhasil', [PenyewaanController::class, 'success'])->name('penyewaan.success');
+Route::get('/penyewaan/invoice/{id_penyewaan}', [PenyewaanController::class, 'downloadInvoice'])->name('penyewaan.invoice.download');
+Route::get('/penyewaan/gagal', [PenyewaanController::class, 'failure'])->name('penyewaan.failure');
 
 // Rute untuk Dashboard Pengelola
 Route::middleware(['auth', 'verified', 'role:pengelola'])->group(function () {
