@@ -265,4 +265,69 @@ class PenyewaanController extends Controller
         $pdf = PDF::loadView('invoices.penyewaan', $dataUntukPdf);
         return $pdf->download($namaFile);
     }
+
+    public function showCheckForm(Request $request)
+    {
+        return Inertia::render('Penyewaan/CekForm', [
+            'errorNotFound' => session('penyewaan_check_error'),
+            'initialSearchedId' => old('id_penyewaan_cek', session('searched_penyewaan_id')),
+        ]);
+    }
+
+    public function processCheckStatus(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id_penyewaan_cek' => 'required|string|max:255',
+        ], [
+            'id_penyewaan_cek.required' => 'ID Penyewaan wajib diisi.',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->route('penyewaan.check.form')
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $customId = $request->input('id_penyewaan_cek');
+        $penyewaan = Penyewaan::where('id_penyewaan', $customId)->first();
+
+        if ($penyewaan) {
+            return redirect()->route('penyewaan.detail', ['id_penyewaan' => $penyewaan->id_penyewaan]);
+        } else {
+            return redirect()->route('penyewaan.check.form')
+                ->with('penyewaan_check_error', 'Data penyewaan dengan ID tersebut tidak ditemukan.')
+                ->with('searched_penyewaan_id', $customId) // Kirim kembali ID yang dicari
+                ->withInput();
+        }
+    }
+
+    public function showDetailPenyewaan(Request $request, $idPenyewaan)
+    {
+        $penyewaan = Penyewaan::with(['pelanggan', 'tenda'])
+            ->where('id_penyewaan', $idPenyewaan)
+            ->first();
+
+        if (!$penyewaan) {
+            return redirect()->route('penyewaan.check.form')
+                ->with('penyewaan_check_error', 'Data penyewaan dengan ID tersebut tidak ditemukan.');
+        }
+
+        $detailData = [
+            'id_penyewaan' => $penyewaan->id_penyewaan,
+            'nama_penyewa' => $penyewaan->pelanggan->nama,
+            'no_telp_penyewa' => $penyewaan->pelanggan->no_telp,
+            'alamat_pemasangan' => $penyewaan->pelanggan->alamat,
+            'nama_tenda' => $penyewaan->tenda->nama_tenda,
+            'jumlah_tenda' => $penyewaan->jumlah_tenda,
+            'tanggal_sewa' => Carbon::parse($penyewaan->tanggal_penyewaan)->isoFormat('D MMMM YYYY'),
+            'durasi_penyewaan' => $penyewaan->durasi_penyewaan . ' hari',
+            'catatan' => $penyewaan->catatan,
+            'status' => $penyewaan->status,
+            'biaya' => 'Rp' . number_format($penyewaan->biaya, 0, ',', '.'),
+        ];
+
+        return Inertia::render('Penyewaan/Detail', [
+            'penyewaanDetail' => $detailData
+        ]);
+    }
 }

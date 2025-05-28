@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\PenyewaanController;
+use App\Http\Controllers\LupaIdController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -22,13 +23,21 @@ use App\Http\Controllers\Petugas\DashboardController as PetugasDashboardControll
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
-// RUTE UNTUK PENYEWAAN 
+// RUTE UNTUK PENYEWAAN
 Route::get('/penyewaan/buat', [PenyewaanController::class, 'create'])->name('penyewaan.create');
 Route::post('/penyewaan/konfirmasi', [PenyewaanController::class, 'showConfirmation'])->name('penyewaan.showConfirmation');
 Route::post('/penyewaan/simpan', [PenyewaanController::class, 'store'])->name('penyewaan.store');
 Route::get('/penyewaan/berhasil', [PenyewaanController::class, 'success'])->name('penyewaan.success');
-Route::get('/penyewaan/invoice/{id_penyewaan}', [PenyewaanController::class, 'downloadInvoice'])->name('penyewaan.invoice.download');
 Route::get('/penyewaan/gagal', [PenyewaanController::class, 'failure'])->name('penyewaan.failure');
+
+// RUTE UNTUK CEK PENYEWAAN
+Route::get('/cek-penyewaan', [PenyewaanController::class, 'showCheckForm'])->name('penyewaan.check.form');
+Route::post('/cek-penyewaan/proses', [PenyewaanController::class, 'processCheckStatus'])->name('penyewaan.check.process');
+Route::get('/penyewaan/detail/{id_penyewaan}', [PenyewaanController::class, 'showDetailPenyewaan'])->name('penyewaan.detail');
+
+// RUTE UNTUK LUPA ID PENYEWAAN
+Route::get('/lupa-id-penyewaan', [LupaIdController::class, 'showForm'])->name('penyewaan.lupa_id.form');
+Route::post('/lupa-id-penyewaan/cari', [LupaIdController::class, 'findIds'])->name('penyewaan.lupa_id.find');
 
 // Rute untuk Dashboard Pengelola
 Route::middleware(['auth', 'verified', 'role:pengelola'])->group(function () {
