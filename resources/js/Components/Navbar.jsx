@@ -30,7 +30,7 @@ export default function Navbar() {
 
                 <div className="flex items-center space-x-8">
                     <Link href={route("welcome")} className="text-dark-gray hover:text-dark-gray-hover font-bold hidden md:block">Beranda</Link>
-                    <Link href={route("penyewaan.check.form")} className="text-dark-gray hover:text-green-700 font-semibold">Cek Penyewaan</Link>
+                    <Link href={route("penyewaan.check.form")} className="text-dark-gray hover:text-dark-gray-hover font-bold hidden md:block">Cek Penyewaan</Link>
                     <div className="relative" ref={menuRef}>
                         <button 
                             onClick={() => setIsMenuOpen(!isMenuOpen)}

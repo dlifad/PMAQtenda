@@ -1,191 +1,185 @@
-import React, { useState } from 'react';
-import { Link } from '@inertiajs/react';
-// Asumsikan Anda memiliki komponen NavLink dan ResponsiveNavLink yang sama seperti di PetugasLayout
-// Jika belum, Anda bisa menyalinnya dari contoh PetugasLayout.jsx atau dari struktur Breeze Anda.
+import React, { useState, useEffect, useRef } from "react";
+import { Link, Head } from "@inertiajs/react";
+import {
+    LayoutGrid,
+    Tent,
+    ListOrdered,
+    CalendarDays,
+    LogOut,
+    UserCircle,
+    Menu,
+    X,
+} from "lucide-react";
 
-// Contoh Komponen NavLink (jika belum ada atau berbeda di file ini)
-const NavLink = ({ active = false, className = '', children, ...props }) => {
-    return (
-        <Link
-            {...props}
-            className={
-                'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none ' +
-                (active
-                    ? 'border-indigo-400 dark:border-indigo-600 text-gray-900 dark:text-gray-100 focus:border-indigo-700 '
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-700 focus:text-gray-700 dark:focus:text-gray-300 focus:border-gray-300 dark:focus:border-gray-700 ') +
-                className
-            }
-        >
-            {children}
-        </Link>
-    );
-};
-
-// Contoh Komponen ResponsiveNavLink (jika belum ada atau berbeda di file ini)
-const ResponsiveNavLink = ({ active = false, className = '', children, ...props }) => {
-    return (
-        <Link
-            {...props}
-            className={`w-full flex items-start ps-3 pe-4 py-2 border-l-4 ${
+// Komponen NavLink untuk item di sidebar
+const NavLink = ({ href, active, children, icon }) => (
+    <Link
+        href={href}
+        className={`flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors duration-150 relative group
+            ${
                 active
-                    ? 'border-indigo-400 dark:border-indigo-600 text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/50 focus:text-indigo-800 dark:focus:text-indigo-200 focus:bg-indigo-100 dark:focus:bg-indigo-900 focus:border-indigo-700 dark:focus:border-indigo-300'
-                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 focus:text-gray-800 dark:focus:text-gray-200 focus:bg-gray-50 dark:focus:bg-gray-700 focus:border-gray-300 dark:focus:border-gray-600'
-            } text-base font-medium focus:outline-none transition duration-150 ease-in-out ${className}`}
-        >
-            {children}
-        </Link>
-    );
-};
+                    ? "bg-green-700 text-white shadow-md"
+                    : "text-gray-700 hover:bg-green-100 hover:text-green-800"
+            }`}
+    >
+        {active && (
+            <span className="absolute left-0 top-0 bottom-0 w-1 bg-green-500 rounded-r-md"></span>
+        )}
+        {React.cloneElement(icon, {
+            className: `w-5 h-5 mr-3 flex-shrink-0 ${
+                active
+                    ? "text-white"
+                    : "text-gray-500 group-hover:text-green-700"
+            }`,
+        })}
+        <span className={active ? "font-semibold" : ""}>{children}</span>
+    </Link>
+);
 
+// Komponen untuk link logout di sidebar
+const LogoutLink = ({
+    href,
+    children,
+    icon,
+    method = "post",
+    as = "button",
+}) => (
+    <Link
+        href={href}
+        method={method}
+        as={as}
+        className={`flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors duration-150 text-gray-700 hover:bg-red-100 hover:text-red-700 group w-full`}
+    >
+        {React.cloneElement(icon, {
+            className:
+                "w-5 h-5 mr-3 flex-shrink-0 text-gray-500 group-hover:text-red-600",
+        })}
+        {children}
+    </Link>
+);
 
 export default function PengelolaLayout({ user, header, children }) {
-    const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    const sidebarNavItems = [
+        {
+            name: "Dashboard",
+            href: route("pengelola.dashboard"),
+            icon: <LayoutGrid />,
+            current: route().current("pengelola.dashboard"),
+        },
+        {
+            name: "Tenda",
+            href: "#",
+            icon: <Tent />,
+            current: route().current("pengelola.tenda.*"),
+        },
+        {
+            name: "Penyewaan",
+            href: "#",
+            icon: <ListOrdered />,
+            current: route().current("pengelola.penyewaan.*"),
+        },
+        {
+            name: "Penjadwalan",
+            href: "#",
+            icon: <CalendarDays />,
+            current: route().current("pengelola.jadwal.*"),
+        },
+    ];
+
+    // Set sidebar terbuka secara default di desktop saat pertama kali load
+    useEffect(() => {
+        if (window.innerWidth >= 768) {
+            setSidebarOpen(true);
+        } else {
+            setSidebarOpen(false);
+        }
+    }, []);
 
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-            <nav className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
-                {/* Primary Navigation Menu */}
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16">
-                        <div className="flex">
-                            {/* Logo */}
-                            <div className="shrink-0 flex items-center">
-                                <Link href={route('welcome')}> {/* Mengarah ke halaman utama */}
-                                    {/* Ganti dengan komponen Logo Aplikasi Anda jika ada */}
-                                    <span className="text-xl font-semibold dark:text-white">PMAQ Tenda (Pengelola)</span>
-                                </Link>
-                            </div>
-
-                            {/* Navigation Links - Spesifik untuk Pengelola */}
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink href={route('pengelola.dashboard')} active={route().current('pengelola.dashboard')}>
-                                    Dashboard Pengelola
-                                </NavLink>
-                                {/* Tambahkan NavLink lain di sini yang spesifik untuk Pengelola */}
-                                {/* Contoh:
-                                <NavLink href={route('pengelola.tenda.index')} active={route().current('pengelola.tenda.index')}>
-                                    Manajemen Tenda
-                                </NavLink>
-                                <NavLink href={route('pengelola.penyewaan.index')} active={route().current('pengelola.penyewaan.index')}>
-                                    Data Penyewaan
-                                </NavLink>
-                                <NavLink href={route('pengelola.jadwal.index')} active={route().current('pengelola.jadwal.index')}>
-                                    Penjadwalan
-                                </NavLink>
-                                */}
-                            </div>
-                        </div>
-
-                        {/* Settings Dropdown */}
-                        <div className="hidden sm:flex sm:items-center sm:ms-6">
-                            <div className="ms-3 relative">
-                                <button
-                                    type="button"
-                                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150"
-                                    onClick={() => setShowingNavigationDropdown((previousState) => !previousState)}
-                                >
-                                    {user.name}
-                                    <svg
-                                        className="ms-2 -me-0.5 h-4 w-4"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 20 20"
-                                        fill="currentColor"
-                                    >
-                                        <path
-                                            fillRule="evenodd"
-                                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                            clipRule="evenodd"
-                                        />
-                                    </svg>
-                                </button>
-                                {showingNavigationDropdown && (
-                                    <div className="absolute z-50 mt-2 w-48 rounded-md shadow-lg origin-top-right right-0">
-                                        <div className="rounded-md ring-1 ring-black ring-opacity-5 py-1 bg-white dark:bg-gray-700">
-                                            <Link
-                                                href={route('profile.edit')}
-                                                className="block w-full px-4 py-2 text-start text-sm leading-5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-800 transition duration-150 ease-in-out"
-                                            >
-                                                Profile
-                                            </Link>
-                                            <Link
-                                                href={route('logout')}
-                                                method="post"
-                                                as="button"
-                                                className="block w-full px-4 py-2 text-start text-sm leading-5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-800 transition duration-150 ease-in-out"
-                                            >
-                                                Log Out
-                                            </Link>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Hamburger */}
-                        <div className="-me-2 flex items-center sm:hidden">
+        <div className="min-h-screen bg-gray-100">
+            <Head />
+            {/* Top Navbar*/}
+            <nav className="bg-nav-footer shadow-md fixed top-0 left-0 right-0 z-30 h-16 flex items-center">
+                <div className="w-full max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between items-center h-16">
+                        <div className="flex items-center">
                             <button
-                                onClick={() => setShowingNavigationDropdown((previousState) => !previousState)}
-                                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-gray-500 dark:focus:text-gray-400 transition duration-150 ease-in-out"
+                                id="sidebar-hamburger-toggle"
+                                onClick={() => setSidebarOpen(!sidebarOpen)}
+                                className="p-2 rounded-md text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500 mr-3"
                             >
-                                <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                                    <path
-                                        className={!showingNavigationDropdown ? 'inline-flex' : 'hidden'}
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
-                                    <path
-                                        className={showingNavigationDropdown ? 'inline-flex' : 'hidden'}
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
+                                {sidebarOpen ? (
+                                    <X className="h-6 w-6" />
+                                ) : (
+                                    <Menu className="h-6 w-6" />
+                                )}
                             </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Responsive Navigation Menu */}
-                <div className={(showingNavigationDropdown ? 'block' : 'hidden') + ' sm:hidden'}>
-                    <div className="pt-2 pb-3 space-y-1">
-                        <ResponsiveNavLink href={route('pengelola.dashboard')} active={route().current('pengelola.dashboard')}>
-                            Dashboard Pengelola
-                        </ResponsiveNavLink>
-                        {/* Tambahkan ResponsiveNavLink lain di sini untuk Pengelola */}
-                        {/* Contoh:
-                        <ResponsiveNavLink href={route('pengelola.tenda.index')} active={route().current('pengelola.tenda.index')}>
-                            Manajemen Tenda
-                        </ResponsiveNavLink>
-                        */}
-                    </div>
-
-                    {/* Responsive Settings Options */}
-                    <div className="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
-                        <div className="px-4">
-                            <div className="font-medium text-base text-gray-800 dark:text-gray-200">{user.name}</div>
-                            <div className="font-medium text-sm text-gray-500">{user.email}</div>
+                            <Link
+                                href={route("welcome")}
+                                className="flex items-center"
+                            >
+                                <img
+                                    src="/images/logo.png"
+                                    alt="PMAQ Tenda Logo"
+                                    className="h-8"
+                                />
+                            </Link>
                         </div>
 
-                        <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route('profile.edit')}>Profile</ResponsiveNavLink>
-                            <ResponsiveNavLink method="post" href={route('logout')} as="button">
-                                Log Out
-                            </ResponsiveNavLink>
+                        <div className="flex items-center">
+                            <span className="text-sm font-medium text-gray-700 mr-2 hidden sm:block">
+                                Pengelola
+                            </span>
+                            <div className="p-1 bg-gray-200 rounded-full">
+                                <UserCircle className="w-8 h-8 text-gray-600" />
+                            </div>
                         </div>
                     </div>
                 </div>
             </nav>
 
-            {header && (
-                <header className="bg-white dark:bg-gray-800 shadow">
-                    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">{header}</div>
-                </header>
-            )}
-
-            <main>{children}</main>
+            {/* Container untuk Sidebar dan Konten Utama */}
+            <div className="flex pt-16">
+                <aside
+                    className={`fixed inset-y-0 left-0 z-20 w-64 bg-sidebar border-r p-4 transform ${
+                        sidebarOpen ? "translate-x-0" : "-translate-x-full"
+                    } transition-transform duration-300 ease-in-out flex flex-col pt-16`}
+                >
+                    <nav className="flex-grow space-y-1.5 mt-4">
+                        {sidebarNavItems.map((item) => (
+                            <NavLink
+                                key={item.name}
+                                href={item.href}
+                                active={item.current}
+                                icon={item.icon}
+                            >
+                                {item.name}
+                            </NavLink>
+                        ))}
+                    </nav>
+                    <div className="mt-auto pt-4">
+                        <LogoutLink href={route("logout")} icon={<LogOut />}>
+                            Logout
+                        </LogoutLink>
+                    </div>
+                </aside>
+                {/* Main Content Area */}
+                <div
+                    className={`flex-1 transition-all duration-300 ease-in-out ${
+                        sidebarOpen ? "ml-0 sm:ml-64" : "ml-0"
+                    }`}
+                >
+                    <div className="flex flex-col min-h-screen">
+                        <main className="flex-1 p-6 bg-white">{children}</main>
+                        <footer className="bg-nav-footer border-t py-4 text-center text-sm text-dark-gray">
+                            &copy; Copyright {new Date().getFullYear()} All Rights
+                            Reserved By PMAQ Tenda
+                        </footer>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
