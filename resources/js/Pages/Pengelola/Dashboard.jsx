@@ -20,11 +20,12 @@ const StatCard = ({ title, value, unit, icon, colorClass }) => (
 
 const getStatusTextColor = (status) => {
     const s = status?.toLowerCase();
-    if (s === "dipesan" || s === "menunggu") return "text-status-menunggu";
-    if (s === "terjadwal" || s === "dikonfirmasi") return "text-terjadwal";
-    if (s === "berlangsung") return "text-berlangsung";
-    if (s === "selesai") return "text-selesai";
-    if (s === "dibatalkan") return "text-ditolak";
+    if (s === "menunggu") return "text-status-menunggu";
+    if (s === "terjadwal") return "text-status-terjadwal";
+    if (s === "berlangsung") return "text-status-berlangsung";
+    if (s === "selesai") return "text-status-selesai";
+    if (s === "ditolak") return "text-status-ditolak";
+    if (s === "dibatalkan") return "text-status-dibatalkan";
     return "text-gray-700";
 }; 
 

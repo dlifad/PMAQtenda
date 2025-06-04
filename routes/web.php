@@ -29,11 +29,15 @@ Route::post('/penyewaan/konfirmasi', [PenyewaanController::class, 'showConfirmat
 Route::post('/penyewaan/simpan', [PenyewaanController::class, 'store'])->name('penyewaan.store');
 Route::get('/penyewaan/berhasil', [PenyewaanController::class, 'success'])->name('penyewaan.success');
 Route::get('/penyewaan/gagal', [PenyewaanController::class, 'failure'])->name('penyewaan.failure');
+Route::post('/penyewaan/{id}/batalkan', [PenyewaanController::class, 'batalkanPenyewaan'])->name('penyewaan.batalkan');
+Route::get('/penyewaan/invoice/{id_penyewaan}/download', [PenyewaanController::class, 'downloadInvoice'])
+    ->name('penyewaan.invoice.download');
 
 // RUTE UNTUK CEK PENYEWAAN
 Route::get('/cek-penyewaan', [PenyewaanController::class, 'showCheckForm'])->name('penyewaan.check.form');
 Route::post('/cek-penyewaan/proses', [PenyewaanController::class, 'processCheckStatus'])->name('penyewaan.check.process');
 Route::get('/penyewaan/detail/{id_penyewaan}', [PenyewaanController::class, 'showDetailPenyewaan'])->name('penyewaan.detail');
+
 
 // RUTE UNTUK LUPA ID PENYEWAAN
 Route::get('/lupa-id-penyewaan', [LupaIdController::class, 'showForm'])->name('penyewaan.lupa_id.form');

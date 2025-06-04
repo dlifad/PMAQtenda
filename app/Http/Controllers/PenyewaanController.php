@@ -13,7 +13,6 @@ use Illuminate\Support\Arr;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-
 class PenyewaanController extends Controller
 {
     public function create(Request $request)
@@ -71,7 +70,7 @@ class PenyewaanController extends Controller
             ],
             'alamat_pemasangan' => $validatedData['alamat_pemasangan'],
             'rincian_penyewaan' => [
-                'tanggal_sewa_formatted' => Carbon::parse($validatedData['tanggal_sewa'])->isoFormat('D MMMM YYYY'),
+                'tanggal_sewa_formatted' => Carbon::parse($validatedData['tanggal_sewa'])->isoFormat('D MMMM YYYY'), 
                 'tanggal_sewa_raw' => $validatedData['tanggal_sewa'],
                 'durasi' => $validatedData['durasi_penyewaan'] . ' hari',
                 'durasi_raw' => $validatedData['durasi_penyewaan'],
@@ -136,6 +135,7 @@ class PenyewaanController extends Controller
         $lastPenyewaan = Penyewaan::where('id_penyewaan', 'like', $searchPrefixWithYear . '%')
             ->orderBy('id_penyewaan', 'desc')
             ->first();
+        
         $nextSequence = 1;
         if ($lastPenyewaan) {
             $sequencePart = substr($lastPenyewaan->id_penyewaan, strlen($searchPrefixWithYear));
@@ -167,7 +167,7 @@ class PenyewaanController extends Controller
 
         $validatedDataFromConfirm = $validator->validated();
 
-        foreach ($validatedDataFromConfirm['selected_tendas'] as $index => $selectedTendaItem) {
+        foreach ($validatedDataFromConfirm['selected_tendas'] as $selectedTendaItem) {
             $tendaModel = Tenda::find($selectedTendaItem['tenda_id']);
             if (!$tendaModel || $tendaModel->jumlah < $selectedTendaItem['jumlah']) {
                 return redirect()->route('penyewaan.create')
@@ -175,7 +175,6 @@ class PenyewaanController extends Controller
                     ->withInput(Arr::except($validatedDataFromConfirm, ['selected_tendas']));
             }
         }
-
 
         DB::beginTransaction();
         try {
@@ -187,10 +186,11 @@ class PenyewaanController extends Controller
 
             $totalBiayaKeseluruhan = 0;
             $penyewaanIds = [];
-            $statusPenyewaan = 'menunggu';
+            $statusPenyewaanDefault = 'menunggu';
             $tanggalSewa = Carbon::parse($validatedDataFromConfirm['tanggal_sewa']);
             $durasi = (int)$validatedDataFromConfirm['durasi_penyewaan'];
-            $tanggalSelesaiSewa = $tanggalSewa->copy()->addDays($durasi - 1);
+            $tanggalSelesaiSewa = $tanggalSewa->copy()->addDays($durasi -1);
+
 
             foreach ($validatedDataFromConfirm['selected_tendas'] as $selectedTenda) {
                 $tendaModel = Tenda::find($selectedTenda['tenda_id']);
@@ -208,11 +208,11 @@ class PenyewaanController extends Controller
                     'durasi_penyewaan' => $validatedDataFromConfirm['durasi_penyewaan'],
                     'jumlah_tenda' => $selectedTenda['jumlah'],
                     'biaya' => $subtotal,
-                    'status' => $validatedDataFromConfirm['status'] ?? 'menunggu',
+                    'status' => $validatedDataFromConfirm['status'] ?? $statusPenyewaanDefault,
                     'catatan' => $validatedDataFromConfirm['catatan'],
                 ]);
                 $penyewaanIds[] = $customIdPenyewaan;
-                $statusPenyewaan = $penyewaanBaru->status;
+                $statusTerakhir = $penyewaanBaru->status; 
 
                 $tendaModel->decrement('jumlah', $selectedTenda['jumlah']);
             }
@@ -222,16 +222,17 @@ class PenyewaanController extends Controller
                 'idPenyewaan' => count($penyewaanIds) > 0 ? $penyewaanIds[0] : null,
                 'namaPenyewa' => $pelanggan->nama,
                 'noTelp' => $pelanggan->no_telp,
-                'tanggalSewa' => $tanggalSewa->isoFormat('D MMMM YYYY') . ($durasi > 1 ? ' - ' . $tanggalSelesaiSewa->isoFormat('D MMMM YYYY') : ''),
+                'tanggalSewa' => $tanggalSewa->isoFormat('D MMMM YYYY') . ($durasi > 1 ? ' - ' . $tanggalSelesaiSewa->isoFormat('D MMMM YYYY') : ''), // YYYY untuk tahun
                 'totalBiaya' => 'Rp' . number_format($totalBiayaKeseluruhan, 0, ',', '.'),
-                'statusPenyewaan' => $statusPenyewaan,
+                'statusPenyewaan' => $statusTerakhir ?? $statusPenyewaanDefault,
             ];
             return redirect()->route('penyewaan.success')->with('penyewaanDetails', $successData);
+
         } catch (\Exception $e) {
             DB::rollBack();
-            \Illuminate\Support\Facades\Log::error('GAGAL SIMPAN PENYEWAAN: ' . $e->getMessage() . "\nFILE: " . $e->getFile() . "\nLINE: " . $e->getLine() . "\nTRACE:\n" . $e->getTraceAsString());
+            \Illuminate\Support\Facades\Log::error('GAGAL SIMPAN PENYEWAAN: ' . $e->getMessage() . "\nDETAIL: " . $e->getFile() . ":" . $e->getLine() . "\n" . $e->getTraceAsString());
             return redirect()->route('penyewaan.failure')
-                ->with('failureMessage', 'Maaf, terjadi kesalahan saat memproses penyewaan Anda. Silakan coba lagi atau hubungi dukungan jika masalah berlanjut.');
+                ->with('failureMessage', 'Maaf, terjadi kesalahan saat memproses penyewaan Anda. Silakan coba lagi.');
         }
     }
 
@@ -245,26 +246,58 @@ class PenyewaanController extends Controller
         return Inertia::render('Penyewaan/Failure');
     }
 
-    public function downloadInvoice(Request $request, $idPenyewaan)
+    public function downloadInvoice(Request $request, $id_penyewaan) 
     {
-        $penyewaan = Penyewaan::with(['pelanggan', 'tenda'])->find($idPenyewaan);
-
-        if (!$penyewaan) {
-            return redirect()->back()->with('error', 'Invoice penyewaan tidak ditemukan.');
-        }
-
+        $penyewaan = Penyewaan::with(['pelanggan', 'tenda'])->findOrFail($id_penyewaan);
         $dataUntukPdf = [
             'penyewaan' => $penyewaan,
             'pelanggan' => $penyewaan->pelanggan,
             'itemTenda' => $penyewaan,
-            'tanggalCetak' => \Carbon\Carbon::now()->isoFormat('D MMMM YYYY'),
+            'tanggalCetak' => Carbon::now()->isoFormat('D MMMM YYYY'), 
         ];
 
         $namaFile = 'invoice-' . $penyewaan->id_penyewaan . '.pdf';
-
-        $pdf = PDF::loadView('invoices.penyewaan', $dataUntukPdf);
+        $pdf = Pdf::loadView('invoices.penyewaan', $dataUntukPdf); 
         return $pdf->download($namaFile);
     }
+
+    public function batalkanPenyewaan(Request $request, $id_penyewaan)
+    {
+        $penyewaan = Penyewaan::findOrFail($id_penyewaan);
+
+        $nonCancellableStatuses = [
+            Penyewaan::STATUS_SELESAI,
+            Penyewaan::STATUS_DITOLAK,
+            Penyewaan::STATUS_DIBATALKAN,
+        ];
+
+        if (in_array($penyewaan->status, $nonCancellableStatuses)) {
+            return redirect()->back()->with('error', 'Penyewaan dengan status saat ini (' . $penyewaan->status . ') tidak dapat dibatalkan.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $penyewaan->status = Penyewaan::STATUS_DIBATALKAN; 
+            $penyewaan->save();
+
+
+            if ($penyewaan->id_tenda && $penyewaan->jumlah_tenda > 0) {
+                $tenda = Tenda::find($penyewaan->id_tenda);
+                if ($tenda) {
+                    $tenda->increment('jumlah', $penyewaan->jumlah_tenda);
+                }
+            }
+            
+            DB::commit();
+            return redirect()->route('penyewaan.detail', ['id_penyewaan' => $id_penyewaan])
+                             ->with('success', 'Penyewaan berhasil dibatalkan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Illuminate\Support\Facades\Log::error('GAGAL BATALKAN PENYEWAAN: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat membatalkan penyewaan.');
+        }
+    }
+
 
     public function showCheckForm(Request $request)
     {
@@ -296,7 +329,7 @@ class PenyewaanController extends Controller
         } else {
             return redirect()->route('penyewaan.check.form')
                 ->with('penyewaan_check_error', 'Data penyewaan dengan ID tersebut tidak ditemukan.')
-                ->with('searched_penyewaan_id', $customId) // Kirim kembali ID yang dicari
+                ->with('searched_penyewaan_id', $customId)
                 ->withInput();
         }
     }
@@ -305,21 +338,16 @@ class PenyewaanController extends Controller
     {
         $penyewaan = Penyewaan::with(['pelanggan', 'tenda'])
             ->where('id_penyewaan', $idPenyewaan)
-            ->first();
-
-        if (!$penyewaan) {
-            return redirect()->route('penyewaan.check.form')
-                ->with('penyewaan_check_error', 'Data penyewaan dengan ID tersebut tidak ditemukan.');
-        }
+            ->firstOrFail();
 
         $detailData = [
             'id_penyewaan' => $penyewaan->id_penyewaan,
             'nama_penyewa' => $penyewaan->pelanggan->nama,
             'no_telp_penyewa' => $penyewaan->pelanggan->no_telp,
             'alamat_pemasangan' => $penyewaan->pelanggan->alamat,
-            'nama_tenda' => $penyewaan->tenda->nama_tenda,
+            'nama_tenda' => $penyewaan->tenda ? $penyewaan->tenda->nama_tenda : 'Data tenda tidak tersedia',
             'jumlah_tenda' => $penyewaan->jumlah_tenda,
-            'tanggal_sewa' => Carbon::parse($penyewaan->tanggal_penyewaan)->isoFormat('D MMMM YYYY'),
+            'tanggal_sewa' => Carbon::parse($penyewaan->tanggal_penyewaan)->isoFormat('D MMMM YYYY'), 
             'durasi_penyewaan' => $penyewaan->durasi_penyewaan . ' hari',
             'catatan' => $penyewaan->catatan,
             'status' => $penyewaan->status,

@@ -36,6 +36,7 @@ export default {
             'status-berlangsung': '#6F42C1', 
             'status-selesai': '#198754',
             'status-ditolak': '#DC3545',
+            'status-dibatalkan': '#DC3545',
       },
         },
     },
