@@ -11,28 +11,29 @@ import {
     X,
 } from "lucide-react";
 
-// Komponen NavLink untuk item di sidebar
 const NavLink = ({ href, active, children, icon }) => (
     <Link
         href={href}
         className={`flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors duration-150 relative group
             ${
                 active
-                    ? "bg-green-700 text-white shadow-md"
+                    ? "text-green-800"
                     : "text-gray-700 hover:bg-green-100 hover:text-green-800"
             }`}
     >
         {active && (
-            <span className="absolute left-0 top-0 bottom-0 w-1 bg-green-500 rounded-r-md"></span>
+            <span className="absolute left-0 top-0 bottom-0 w-1 bg-green-700 "></span>
         )}
+
         {React.cloneElement(icon, {
             className: `w-5 h-5 mr-3 flex-shrink-0 ${
                 active
-                    ? "text-white"
+                    ? "text-green-700"
                     : "text-gray-500 group-hover:text-green-700"
             }`,
         })}
-        <span className={active ? "font-semibold" : ""}>{children}</span>
+
+        <span className={active ? "font-bold" : ""}>{children}</span>
     </Link>
 );
 
@@ -59,7 +60,25 @@ const LogoutLink = ({
 );
 
 export default function PengelolaLayout({ user, header, children }) {
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+    // Inisialisasi state sidebar dari localStorage, atau default berdasarkan ukuran layar
+    const [sidebarOpen, setSidebarOpen] = useState(() => {
+        const savedState =
+            typeof window !== "undefined"
+                ? localStorage.getItem("sidebarOpen")
+                : null;
+        if (savedState !== null) {
+            return JSON.parse(savedState);
+        }
+        // Default jika tidak ada state tersimpan
+        return typeof window !== "undefined" ? window.innerWidth >= 768 : false;
+    });
+
+    // useEffect untuk menyimpan state sidebar ke localStorage setiap kali berubah
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            localStorage.setItem("sidebarOpen", JSON.stringify(sidebarOpen));
+        }
+    }, [sidebarOpen]);
 
     const sidebarNavItems = [
         {
@@ -71,7 +90,7 @@ export default function PengelolaLayout({ user, header, children }) {
         {
             name: "Tenda",
             href: route("pengelola.tenda.index"),
-            icon: <File />, //
+            icon: <File />,
             current: route().current("pengelola.tenda.*"),
         },
         {
@@ -88,22 +107,13 @@ export default function PengelolaLayout({ user, header, children }) {
         },
     ];
 
-    // Set sidebar terbuka secara default di desktop saat pertama kali load
-    useEffect(() => {
-        if (window.innerWidth >= 768) {
-            setSidebarOpen(true);
-        } else {
-            setSidebarOpen(false);
-        }
-    }, []);
-
     return (
         <div className="min-h-screen bg-gray-100">
             <Head />
-            {/* Top Navbar*/}
-            <nav className="bg-nav-footer shadow-md fixed top-0 left-0 right-0 z-30 h-16 flex items-center">
+            {/* Top Navbar - Selalu Visible dan Fixed */}
+            <nav className="bg-nav-footer  fixed top-0 left-0 right-0 z-30 h-16 flex items-center">
                 <div className="w-full max-w-full mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
+                    <div className="flex justify-between items-center h-full">
                         <div className="flex items-center">
                             <button
                                 id="sidebar-hamburger-toggle"
@@ -127,7 +137,6 @@ export default function PengelolaLayout({ user, header, children }) {
                                 />
                             </Link>
                         </div>
-
                         <div className="flex items-center">
                             <span className="text-sm font-medium text-gray-700 mr-2 hidden sm:block">
                                 Pengelola
@@ -142,8 +151,9 @@ export default function PengelolaLayout({ user, header, children }) {
 
             {/* Container untuk Sidebar dan Konten Utama */}
             <div className="flex pt-16">
+                {/* Sidebar */}
                 <aside
-                    className={`fixed inset-y-0 left-0 z-20 w-64 bg-sidebar border-r p-4 transform ${
+                    className={`fixed inset-y-0 left-0 z-20 w-64 bg-sidebar p-4 transform ${
                         sidebarOpen ? "translate-x-0" : "-translate-x-full"
                     } transition-transform duration-300 ease-in-out flex flex-col pt-16`}
                 >
@@ -165,19 +175,27 @@ export default function PengelolaLayout({ user, header, children }) {
                         </LogoutLink>
                     </div>
                 </aside>
+
                 {/* Main Content Area */}
                 <div
-                    className={`flex-1 transition-all duration-300 ease-in-out ${
-                        sidebarOpen ? "ml-0 sm:ml-64" : "ml-0"
+                    className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${
+                        sidebarOpen ? "ml-64" : "ml-0"
                     }`}
                 >
-                    <div className="flex flex-col min-h-screen">
-                        <main className="flex-1 p-6 bg-white">{children}</main>
-                        <footer className="bg-nav-footer border-t py-4 text-center text-sm text-dark-gray">
-                            &copy; Copyright {new Date().getFullYear()} All
-                            Rights Reserved By PMAQ Tenda
-                        </footer>
-                    </div>
+                    {header && (
+                        <header className="bg-white shadow-sm border-b border-gray-200">
+                            <div className="max-w-full py-4 px-4 sm:px-6 lg:px-8">
+                                {header}
+                            </div>
+                        </header>
+                    )}
+                    <main className="flex-1 overflow-y-auto p-6 bg-white flex">
+                        <div className="w-full my-auto">{children}</div>
+                    </main>
+                    <footer className="bg-nav-footer border-t py-4 text-center text-sm text-dark-gray">
+                        &copy; All Rights Reserved By PMAQ Tenda{" "}
+                        {new Date().getFullYear()}. All Rights Reserved By PMAQ Tenda
+                    </footer>
                 </div>
             </div>
         </div>
