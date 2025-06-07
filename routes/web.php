@@ -9,6 +9,7 @@ use Inertia\Inertia;
 
 use App\Http\Controllers\Pengelola\DashboardController as PengelolaDashboardController;
 use App\Http\Controllers\Pengelola\TendaController as PengelolaTendaController;
+use App\Http\Controllers\Pengelola\PenyewaanController as PengelolaPenyewaanController;
 use App\Http\Controllers\Petugas\DashboardController as PetugasDashboardController;
 
 /*
@@ -51,9 +52,8 @@ Route::middleware(['auth', 'verified', 'role:pengelola'])
     ->group(function () {
         Route::get('/dashboard', [PengelolaDashboardController::class, 'index'])
             ->name('dashboard');
-
-        // ✅ Perbaikan: resource route sekarang punya prefix dan name yang sesuai
         Route::resource('tenda', PengelolaTendaController::class);
+        Route::get('penyewaan', [PengelolaPenyewaanController::class, 'index'])->name('penyewaan.index');
     });
 
 

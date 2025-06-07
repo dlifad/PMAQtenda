@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, Head } from "@inertiajs/react";
 import {
     LayoutGrid,
@@ -15,65 +15,43 @@ const NavLink = ({ href, active, children, icon }) => (
     <Link
         href={href}
         className={`flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors duration-150 relative group
-            ${
-                active
-                    ? "text-green-800"
-                    : "text-gray-700 hover:bg-green-100 hover:text-green-800"
-            }`}
+            ${active ? "text-green-800" : "text-gray-700 hover:bg-green-100 hover:text-green-800"}`}
     >
         {active && (
-            <span className="absolute left-0 top-0 bottom-0 w-1 bg-green-700 "></span>
+            <span className="absolute left-0 top-0 bottom-0 w-1 bg-green-700"></span>
         )}
-
         {React.cloneElement(icon, {
             className: `w-5 h-5 mr-3 flex-shrink-0 ${
-                active
-                    ? "text-green-700"
-                    : "text-gray-500 group-hover:text-green-700"
+                active ? "text-green-700" : "text-gray-500 group-hover:text-green-700"
             }`,
         })}
-
         <span className={active ? "font-bold" : ""}>{children}</span>
     </Link>
 );
 
-// Komponen untuk link logout di sidebar
-const LogoutLink = ({
-    href,
-    children,
-    icon,
-    method = "post",
-    as = "button",
-}) => (
+const LogoutLink = ({ href, children, icon, method = "post", as = "button" }) => (
     <Link
         href={href}
         method={method}
         as={as}
-        className={`flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors duration-150 text-gray-700 hover:bg-red-100 hover:text-red-700 group w-full`}
+        className="flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors duration-150 text-gray-700 hover:bg-red-100 hover:text-red-700 group w-full"
     >
         {React.cloneElement(icon, {
-            className:
-                "w-5 h-5 mr-3 flex-shrink-0 text-gray-500 group-hover:text-red-600",
+            className: "w-5 h-5 mr-3 flex-shrink-0 text-gray-500 group-hover:text-red-600",
         })}
         {children}
     </Link>
 );
 
 export default function PengelolaLayout({ user, header, children }) {
-    // Inisialisasi state sidebar dari localStorage, atau default berdasarkan ukuran layar
     const [sidebarOpen, setSidebarOpen] = useState(() => {
-        const savedState =
-            typeof window !== "undefined"
-                ? localStorage.getItem("sidebarOpen")
-                : null;
-        if (savedState !== null) {
-            return JSON.parse(savedState);
+        if (typeof window !== "undefined") {
+            const saved = localStorage.getItem("sidebarOpen");
+            return saved !== null ? JSON.parse(saved) : window.innerWidth >= 768;
         }
-        // Default jika tidak ada state tersimpan
-        return typeof window !== "undefined" ? window.innerWidth >= 768 : false;
+        return false;
     });
 
-    // useEffect untuk menyimpan state sidebar ke localStorage setiap kali berubah
     useEffect(() => {
         if (typeof window !== "undefined") {
             localStorage.setItem("sidebarOpen", JSON.stringify(sidebarOpen));
@@ -95,7 +73,7 @@ export default function PengelolaLayout({ user, header, children }) {
         },
         {
             name: "Penyewaan",
-            href: "#",
+            href: route("pengelola.penyewaan.index"),
             icon: <ListOrdered />,
             current: route().current("pengelola.penyewaan.*"),
         },
@@ -110,31 +88,20 @@ export default function PengelolaLayout({ user, header, children }) {
     return (
         <div className="min-h-screen bg-gray-100">
             <Head />
-            {/* Top Navbar - Selalu Visible dan Fixed */}
-            <nav className="bg-nav-footer  fixed top-0 left-0 right-0 z-30 h-16 flex items-center">
+
+            {/* Top Navbar */}
+            <nav className="bg-nav-footer fixed top-0 left-0 right-0 z-30 h-16 flex items-center">
                 <div className="w-full max-w-full mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-full">
                         <div className="flex items-center">
                             <button
-                                id="sidebar-hamburger-toggle"
                                 onClick={() => setSidebarOpen(!sidebarOpen)}
                                 className="p-2 rounded-md text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500 mr-3"
                             >
-                                {sidebarOpen ? (
-                                    <X className="h-6 w-6" />
-                                ) : (
-                                    <Menu className="h-6 w-6" />
-                                )}
+                                {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                             </button>
-                            <Link
-                                href={route("welcome")}
-                                className="flex items-center"
-                            >
-                                <img
-                                    src="/images/logo.png"
-                                    alt="PMAQ Tenda Logo"
-                                    className="h-8"
-                                />
+                            <Link href={route("welcome")} className="flex items-center">
+                                <img src="/images/logo.png" alt="PMAQ Tenda Logo" className="h-8" />
                             </Link>
                         </div>
                         <div className="flex items-center">
@@ -149,7 +116,7 @@ export default function PengelolaLayout({ user, header, children }) {
                 </div>
             </nav>
 
-            {/* Container untuk Sidebar dan Konten Utama */}
+            {/* Sidebar + Main Content */}
             <div className="flex pt-16">
                 {/* Sidebar */}
                 <aside
@@ -177,25 +144,16 @@ export default function PengelolaLayout({ user, header, children }) {
                 </aside>
 
                 {/* Main Content Area */}
-                <div
-                    className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${
-                        sidebarOpen ? "ml-64" : "ml-0"
-                    }`}
-                >
-                    {header && (
-                        <header className="bg-white shadow-sm border-b border-gray-200">
-                            <div className="max-w-full py-4 px-4 sm:px-6 lg:px-8">
-                                {header}
-                            </div>
-                        </header>
-                    )}
-                    <main className="flex-1 overflow-y-auto p-6 bg-white flex">
-                        <div className="w-full my-auto">{children}</div>
-                    </main>
-                    <footer className="bg-nav-footer border-t py-4 text-center text-sm text-dark-gray">
-                        &copy; All Rights Reserved By PMAQ Tenda{" "}
-                        {new Date().getFullYear()}. All Rights Reserved By PMAQ Tenda
-                    </footer>
+                <div className={`flex-1 transition-all duration-300 ease-in-out ${sidebarOpen ? "ml-0 sm:ml-64" : "ml-0"}`}>
+                    <div className="flex flex-col min-h-[calc(100vh-4rem)]">
+                        <main className="flex-grow p-12 bg-white">
+                            {header && <div className="mb-6">{header}</div>}
+                            {children}
+                        </main>
+                        <footer className="bg-nav-footer border-t py-4 text-center text-sm text-dark-gray">
+                            &copy; {new Date().getFullYear()} PMAQ Tenda. All rights reserved.
+                        </footer>
+                    </div>
                 </div>
             </div>
         </div>
