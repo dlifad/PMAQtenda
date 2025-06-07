@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, Head } from "@inertiajs/react";
 import {
     LayoutGrid,
-    Tent,
+    File,
     ListOrdered,
     CalendarDays,
     LogOut,
@@ -70,8 +70,8 @@ export default function PengelolaLayout({ user, header, children }) {
         },
         {
             name: "Tenda",
-            href: "#",
-            icon: <Tent />,
+            href: route("pengelola.tenda.index"),
+            icon: <File />, //
             current: route().current("pengelola.tenda.*"),
         },
         {
@@ -174,8 +174,8 @@ export default function PengelolaLayout({ user, header, children }) {
                     <div className="flex flex-col min-h-screen">
                         <main className="flex-1 p-6 bg-white">{children}</main>
                         <footer className="bg-nav-footer border-t py-4 text-center text-sm text-dark-gray">
-                            &copy; Copyright {new Date().getFullYear()} All Rights
-                            Reserved By PMAQ Tenda
+                            &copy; Copyright {new Date().getFullYear()} All
+                            Rights Reserved By PMAQ Tenda
                         </footer>
                     </div>
                 </div>

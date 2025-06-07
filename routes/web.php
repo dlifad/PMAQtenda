@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 use App\Http\Controllers\Pengelola\DashboardController as PengelolaDashboardController;
+use App\Http\Controllers\Pengelola\TendaController as PengelolaTendaController;
 use App\Http\Controllers\Petugas\DashboardController as PetugasDashboardController;
 
 /*
@@ -44,11 +45,17 @@ Route::get('/lupa-id-penyewaan', [LupaIdController::class, 'showForm'])->name('p
 Route::post('/lupa-id-penyewaan/cari', [LupaIdController::class, 'findIds'])->name('penyewaan.lupa_id.find');
 
 // Rute untuk Dashboard Pengelola
-Route::middleware(['auth', 'verified', 'role:pengelola'])->group(function () {
-    Route::get('/pengelola/dashboard', [PengelolaDashboardController::class, 'index'])
-        ->name('pengelola.dashboard');
-    // Tambahkan rute lain khusus pengelola di sini
-});
+Route::middleware(['auth', 'verified', 'role:pengelola'])
+    ->prefix('pengelola')
+    ->name('pengelola.')
+    ->group(function () {
+        Route::get('/dashboard', [PengelolaDashboardController::class, 'index'])
+            ->name('dashboard');
+
+        // ✅ Perbaikan: resource route sekarang punya prefix dan name yang sesuai
+        Route::resource('tenda', PengelolaTendaController::class);
+    });
+
 
 // Rute untuk Dashboard Petugas Lapangan
 Route::middleware(['auth', 'verified', 'role:petugas_lapangan'])->group(function () {

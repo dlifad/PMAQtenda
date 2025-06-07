@@ -107,14 +107,16 @@ export default function Welcome({ tendas }) {
                                             key={tenda.id_tenda}
                                             className="flex flex-col md:flex-row bg-white rounded-lg shadow-md overflow-hidden"
                                         >
-                                            <div className="md:w-2/5">
+                                            <div className="md:w-2/5 flex-shrink-0 bg-gray-100">
                                                 <img
-                                                    src={getImagePath(
-                                                        tenda.gambar
-                                                    )}
+                                                    src={
+                                                        tenda.gambar_url ||
+                                                        "/images/tenda-preview.jpg"
+                                                    }
                                                     alt={tenda.nama_tenda}
                                                     className="w-[600px] h-[350px] object-cover"
                                                     onError={(e) => {
+                                                        e.target.onerror = null;
                                                         e.target.src =
                                                             "/images/tenda-preview.jpg";
                                                     }}
@@ -146,11 +148,6 @@ export default function Welcome({ tendas }) {
                                                                     </li>
                                                                 )
                                                             )}
-                                                        <li className="flex items-center">
-                                                            <Check className="w-4 h-4 text-dark-gray mr-1" />
-                                                            Stok tersedia:{" "}
-                                                            {tenda.jumlah} unit
-                                                        </li>
                                                     </ul>
                                                 </div>
                                                 <div className="flex justify-between items-center">
@@ -162,7 +159,15 @@ export default function Welcome({ tendas }) {
                                                     </div>
                                                 </div>
                                                 <div className="pt-4">
-                                                    <Link href={route('penyewaan.create', { tenda_id: tenda.id_tenda })}>
+                                                    <Link
+                                                        href={route(
+                                                            "penyewaan.create",
+                                                            {
+                                                                tenda_id:
+                                                                    tenda.id_tenda,
+                                                            }
+                                                        )}
+                                                    >
                                                         <Button variant="primary">
                                                             Sewa
                                                         </Button>
