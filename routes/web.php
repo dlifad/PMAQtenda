@@ -52,28 +52,29 @@ Route::middleware(['auth', 'verified', 'role:pengelola'])->prefix('pengelola')->
         Route::resource('tenda', PengelolaTendaController::class);
         
         Route::controller(PengelolaPenyewaanController::class)->prefix('penyewaan')->name('penyewaan.')->group(function () {
-            Route::get('/', 'index')->name('index'); // pengelola.penyewaan.index
-            Route::get('/{penyewaan}', 'show')->name('show'); // pengelola.penyewaan.show
-            Route::patch('/{penyewaan}/update-status', 'updateStatus')->name('updateStatus'); // pengelola.penyewaan.updateStatus
-            Route::post('/{penyewaan}/schedule', 'schedule')->name('schedule'); // pengelola.penyewaan.schedule
-            // Anda bisa menambahkan rute lain seperti 'cetak' di sini jika controller-nya berbeda
+            Route::get('/', 'index')->name('index');
+            Route::get('/{penyewaan}', 'show')->name('show');
+            Route::patch('/{penyewaan}/update-status', 'updateStatus')->name('updateStatus');
+            Route::post('/{penyewaan}/schedule', 'schedule')->name('schedule');
         });
 
         Route::controller(PengelolaPenjadwalanController::class)->prefix('penjadwalan')->name('penjadwalan.')->group(function () {
-            Route::get('/', 'index')->name('index'); // pengelola.penjadwalan.index
-            Route::post('/', 'store')->name('store'); // pengelola.penjadwalan.store
-            Route::get('/{id}', 'show')->name('show'); // pengelola.penjadwalan.show - ROUTE BARU
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{id}', 'show')->name('show'); 
             Route::put('/{id}', 'update')->name('update');
         });
 });
 
 
 // Rute untuk Dashboard Petugas Lapangan
-Route::middleware(['auth', 'verified', 'role:petugas_lapangan'])->group(function () {
-    Route::get('/petugas/dashboard', [PetugasDashboardController::class, 'index'])->name('petugas.dashboard');
-    // Rute lain untuk petugas jika ada
+Route::middleware(['auth', 'verified', 'role:petugas_lapangan'])->prefix('petugas')->name('petugas.')->group(function () {
+    Route::get('/dashboard', [PetugasDashboardController::class, 'index'])->name('dashboard');
+        
+   Route::patch('/jadwal/{id_jadwal}/update-status', [PetugasDashboardController::class, 'updateStatus'])
+    ->name('petugas.jadwal.updateStatus');
+    
 });
-
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

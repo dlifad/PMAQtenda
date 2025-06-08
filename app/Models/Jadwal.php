@@ -10,14 +10,13 @@ class Jadwal extends Model
     use HasFactory;
 
     protected $table = 'jadwal';
-
     protected $primaryKey = 'id_jadwal';
 
-    /**
-     * Atribut yang dapat diisi secara massal.
-     *
-     * @var array<int, string>
-     */
+    // Konstanta untuk status jadwal
+    public const STATUS_TERJADWAL = 'terjadwal';
+    public const STATUS_TERPASANG = 'terpasang'; 
+    public const STATUS_TERBONGKAR = 'terbongkar';
+
     protected $fillable = [
         'id_penyewaan',
         'tanggal_pemasangan',
@@ -27,9 +26,6 @@ class Jadwal extends Model
         'status',
     ];
 
-    /**
-     * Relasi dengan tabel Penyewaan
-     */
     public function penyewaan()
     {
         return $this->belongsTo(Penyewaan::class, 'id_penyewaan', 'id_penyewaan');
