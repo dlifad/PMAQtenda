@@ -71,8 +71,9 @@ Route::middleware(['auth', 'verified', 'role:pengelola'])->prefix('pengelola')->
 Route::middleware(['auth', 'verified', 'role:petugas_lapangan'])->prefix('petugas')->name('petugas.')->group(function () {
     Route::get('/dashboard', [PetugasDashboardController::class, 'index'])->name('dashboard');
         
-   Route::patch('/jadwal/{id_jadwal}/update-status', [PetugasDashboardController::class, 'updateStatus'])
-    ->name('petugas.jadwal.updateStatus');
+    Route::patch('/jadwal/{id_jadwal}/update-status', [PetugasDashboardController::class, 'updateStatus'])->name('petugas.jadwal.updateStatus');
+
+    Route::get('/jadwal/{id_jadwal}', [PetugasDashboardController::class, 'show'])->name('jadwal.show');
     
 });
 

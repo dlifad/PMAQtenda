@@ -152,9 +152,6 @@ class DashboardController extends Controller
         ]);
     }
 
-    /**
-     * Mengubah status jadwal (bukan penyewaan) oleh petugas.
-     */
     public function updateStatus(Request $request, $id_jadwal)
     {
         $request->validate(['status' => 'required|string|in:terpasang,terbongkar']);
@@ -171,5 +168,61 @@ class DashboardController extends Controller
 
         $jadwal->save();
         return redirect()->back()->with('success', 'Status jadwal berhasil diperbarui.');
+    }
+
+    public function show($id_jadwal, Request $request)
+    {
+        // Ambil parameter jenis dari query string, default ke pemasangan
+        $jenis = $request->get('jenis', 'pemasangan');
+
+        // Validasi jenis parameter
+        if (!in_array($jenis, ['pemasangan', 'pembongkaran'])) {
+            $jenis = 'pemasangan';
+        }
+
+        // Ambil data jadwal dengan relasi yang diperlukan
+        $jadwal = Jadwal::with(['penyewaan.pelanggan', 'penyewaan.tenda'])
+            ->where('id_jadwal', $id_jadwal)
+            ->firstOrFail();
+
+        // Tentukan tanggal dan waktu berdasarkan jenis tugas
+        $tanggal_tugas = $jenis === 'pemasangan' ? $jadwal->tanggal_pemasangan : $jadwal->tanggal_pembongkaran;
+        $waktu_tugas = $jenis === 'pemasangan' ? $jadwal->waktu_pemasangan : $jadwal->waktu_pembongkaran;
+
+        // Format data untuk tampilan detail
+        $detailJadwal = [
+            'id_jadwal' => $jadwal->id_jadwal,
+            'id_penyewaan' => $jadwal->id_penyewaan,
+            'status' => $jadwal->status,
+            'jenis_tugas' => $jenis, // Tambahkan jenis tugas
+
+            // Tanggal dan waktu sesuai jenis tugas
+            'tanggal_tugas' => Carbon::parse($tanggal_tugas)->isoFormat('D MMMM YYYY'),
+            'waktu_tugas' => Carbon::parse($waktu_tugas)->format('H:i'),
+
+            // Data lengkap untuk referensi
+            'tanggal_pemasangan' => Carbon::parse($jadwal->tanggal_pemasangan)->isoFormat('D MMMM YYYY'),
+            'waktu_pemasangan' => Carbon::parse($jadwal->waktu_pemasangan)->format('H:i'),
+            'tanggal_pembongkaran' => Carbon::parse($jadwal->tanggal_pembongkaran)->isoFormat('D MMMM YYYY'),
+            'waktu_pembongkaran' => Carbon::parse($jadwal->waktu_pembongkaran)->format('H:i'),
+            'catatan_penyewa' => $jadwal->penyewaan->catatan ?? '-',
+
+            // Data Tenda
+            'tenda' => [
+                'nama' => $jadwal->penyewaan->tenda->nama_tenda ?? 'Tidak tersedia',
+                'jumlah' => $jadwal->penyewaan->jumlah_tenda ?? 0,
+            ],
+
+            // Data Penyewa
+            'penyewa' => [
+                'nama' => $jadwal->penyewaan->pelanggan->nama,
+                'nomor_telp' => $jadwal->penyewaan->pelanggan->nomor_telp,
+                'alamat' => $jadwal->penyewaan->pelanggan->alamat,
+            ],
+        ];
+
+        return Inertia::render('Petugas/Show', [
+            'jadwal' => $detailJadwal
+        ]);
     }
 }

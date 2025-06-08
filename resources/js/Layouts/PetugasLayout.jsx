@@ -36,17 +36,6 @@ export default function PetugasLayout({ user, children }) {
             {/* Content */}
             <main className="pt-16">
                 <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-end mb-4">
-                        <Link
-                            href={route("logout")}
-                            method="post"
-                            as="button"
-                            className="inline-flex items-center px-3 py-2 border border-red-300 text-sm leading-4 font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition"
-                        >
-                            <LogOut className="w-4 h-4 mr-1" />
-                            Log Out
-                        </Link>
-                    </div>
                     {children}
                 </div>
             </main>
