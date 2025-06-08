@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link, Head } from "@inertiajs/react";
 import {
-    LayoutGrid,
+    LayoutDashboard,
     File,
-    ListOrdered,
+    NotebookPen,
     CalendarDays,
     LogOut,
     UserCircle,
@@ -62,7 +62,7 @@ export default function PengelolaLayout({ user, header, children }) {
         {
             name: "Dashboard",
             href: route("pengelola.dashboard"),
-            icon: <LayoutGrid />,
+            icon: <LayoutDashboard />,
             current: route().current("pengelola.dashboard"),
         },
         {
@@ -74,14 +74,14 @@ export default function PengelolaLayout({ user, header, children }) {
         {
             name: "Penyewaan",
             href: route("pengelola.penyewaan.index"),
-            icon: <ListOrdered />,
+            icon: <NotebookPen />,
             current: route().current("pengelola.penyewaan.*"),
         },
-        {
-            name: "Penjadwalan",
-            href: "#",
-            icon: <CalendarDays />,
-            current: route().current("pengelola.jadwal.*"),
+        { 
+            name: "Penjadwalan", 
+            href: route('pengelola.penjadwalan.index'),
+            icon: <CalendarDays />, 
+            current: route().current("pengelola.penjadwalan.*") 
         },
     ];
 

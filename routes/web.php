@@ -10,6 +10,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\Pengelola\DashboardController as PengelolaDashboardController;
 use App\Http\Controllers\Pengelola\TendaController as PengelolaTendaController;
 use App\Http\Controllers\Pengelola\PenyewaanController as PengelolaPenyewaanController;
+use App\Http\Controllers\Pengelola\PenjadwalanController as PengelolaPenjadwalanController;
 use App\Http\Controllers\Petugas\DashboardController as PetugasDashboardController;
 
 /*
@@ -57,7 +58,13 @@ Route::middleware(['auth', 'verified', 'role:pengelola'])->prefix('pengelola')->
             Route::post('/{penyewaan}/schedule', 'schedule')->name('schedule'); // pengelola.penyewaan.schedule
             // Anda bisa menambahkan rute lain seperti 'cetak' di sini jika controller-nya berbeda
         });
-    });
+
+        Route::controller(PengelolaPenjadwalanController::class)->prefix('penjadwalan')->name('penjadwalan.')->group(function () {
+            Route::get('/', 'index')->name('index'); // pengelola.penjadwalan.index
+            Route::post('/', 'store')->name('store'); // pengelola.penjadwalan.store
+            Route::get('/{id}', 'show')->name('show'); // pengelola.penjadwalan.show - ROUTE BARU
+        });
+});
 
 
 // Rute untuk Dashboard Petugas Lapangan

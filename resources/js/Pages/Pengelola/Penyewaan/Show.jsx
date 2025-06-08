@@ -45,16 +45,11 @@ export default function Show({ auth, penyewaanDetail }) {
     // Fungsi untuk mengecek apakah button jadwalkan harus disabled
     const isScheduleButtonDisabled = () => {
         const status = penyewaanDetail.status?.toLowerCase();
-        return processing || 
-               (status !== "menunggu" && status !== "terjadwal");
+        return processing || status !== "menunggu";
     };
 
     // Fungsi untuk mendapatkan teks button jadwalkan
     const getScheduleButtonText = () => {
-        const status = penyewaanDetail.status?.toLowerCase();
-        if (status === "terjadwal") {
-            return "Jadwalkan Ulang";
-        }
         return "Jadwalkan";
     };
 
