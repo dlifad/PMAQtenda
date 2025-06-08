@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Head, Link, useForm, usePage } from "@inertiajs/react";
+import { Head, Link, useForm, usePage, router } from "@inertiajs/react";
 import PengelolaLayout from "@/Layouts/PengelolaLayout";
 import Button from "@/Components/Button";
 import { ArrowLeft, Printer, Ban, CalendarPlus, X } from "lucide-react";
@@ -15,11 +15,13 @@ export default function Show({ auth, penyewaanDetail }) {
     const { data, setData, post, patch, processing, errors, reset } = useForm({
         status: "",
         tanggal_pemasangan:
-            penyewaanDetail.jadwal?.tanggal_pemasangan ||
-            penyewaanDetail.tanggal_sewa_raw,
+            penyewaanDetail.jadwal?.tanggal_pemasangan,
+        waktu_pemasangan:
+            penyewaanDetail.jadwal?.waktu_pemasangan,
         tanggal_pembongkaran:
-            penyewaanDetail.jadwal?.tanggal_pembongkaran ||
-            penyewaanDetail.tanggal_selesai_raw,
+            penyewaanDetail.jadwal?.tanggal_pembongkaran,
+        waktu_pembongkaran:
+            penyewaanDetail.jadwal?.waktu_pembongkaran,
     });
 
     const getStatusTextColor = (status) => {
@@ -33,21 +35,81 @@ export default function Show({ auth, penyewaanDetail }) {
         return "text-gray-700";
     };
 
-    const handleReject = () => {
-        if (
-            confirm(
-                "Apakah Anda yakin ingin menolak atau membatalkan penyewaan ini?"
-            )
-        ) {
+    // Fungsi untuk mengecek apakah button tolak/batal harus disabled
+    const isCancelButtonDisabled = () => {
+        const status = penyewaanDetail.status?.toLowerCase();
+        return processing || 
+               (status !== "menunggu" && status !== "terjadwal");
+    };
+
+    // Fungsi untuk mengecek apakah button jadwalkan harus disabled
+    const isScheduleButtonDisabled = () => {
+        const status = penyewaanDetail.status?.toLowerCase();
+        return processing || 
+               (status !== "menunggu" && status !== "terjadwal");
+    };
+
+    // Fungsi untuk mendapatkan teks button jadwalkan
+    const getScheduleButtonText = () => {
+        const status = penyewaanDetail.status?.toLowerCase();
+        if (status === "terjadwal") {
+            return "Jadwalkan Ulang";
+        }
+        return "Jadwalkan";
+    };
+
+    // Fungsi untuk mendapatkan teks button tolak/batal
+    const getCancelButtonText = () => {
+        const status = penyewaanDetail.status?.toLowerCase();
+        if (status === "menunggu") {
+            return "Tolak";
+        } else if (status === "terjadwal") {
+            return "Batal";
+        }
+        return "Batal";
+    };
+
+    // Fungsi untuk mendapatkan status yang akan dikirim ke server
+    const getCancelStatus = () => {
+        const status = penyewaanDetail.status?.toLowerCase();
+        if (status === "menunggu") {
+            return "Ditolak";
+        } else if (status === "terjadwal") {
+            return "Dibatalkan";
+        }
+        return "Dibatalkan";
+    };
+
+    // Fungsi untuk mendapatkan pesan konfirmasi
+    const getCancelConfirmationMessage = () => {
+        const status = penyewaanDetail.status?.toLowerCase();
+        if (status === "menunggu") {
+            return "Apakah Anda yakin ingin menolak penyewaan ini?";
+        } else if (status === "terjadwal") {
+            return "Apakah Anda yakin ingin membatalkan penyewaan ini?";
+        }
+        return "Apakah Anda yakin ingin membatalkan penyewaan ini?";
+    };
+
+    const handleCancel = () => {
+        if (confirm(getCancelConfirmationMessage())) {
             router.patch(
                 route(
                     "pengelola.penyewaan.updateStatus",
                     penyewaanDetail.id_penyewaan
                 ),
                 {
-                    status: "Ditolak",
+                    status: getCancelStatus(),
                 },
-                { preserveScroll: true }
+                { 
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        console.log(`Status berhasil diubah menjadi ${getCancelStatus()}`);
+                    },
+                    onError: (errors) => {
+                        console.error('Gagal mengubah status:', errors);
+                    }
+                }
             );
         }
     };
@@ -67,7 +129,6 @@ export default function Show({ auth, penyewaanDetail }) {
     };
 
     const handlePrintInvoice = () => {
-        // Buka URL download di tab baru
         window.open(
             route("penyewaan.invoice.download", {
                 id_penyewaan: penyewaanDetail.id_penyewaan,
@@ -90,7 +151,7 @@ export default function Show({ auth, penyewaanDetail }) {
                         Penyewaan
                     </Link>
                     <span className="text-green-600 hover:text-green-800">
-                        /
+                        {" / "}
                     </span>
                     <span className="text-green-600 hover:text-green-800">
                         {pelanggan.nama}
@@ -104,6 +165,7 @@ export default function Show({ auth, penyewaanDetail }) {
 
             <div className="bg-white rounded-lg shadow-lg p-6 md:p-8 space-y-8">
                 <h3 className="font-bold">Detail Penyewaan</h3>
+                
                 {/* Top Section */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-6 border-b">
                     <div>
@@ -230,27 +292,21 @@ export default function Show({ auth, penyewaanDetail }) {
                     <div className="flex flex-row gap-3" id="action-buttons">
                         <Button
                             variant="danger"
-                            className="w-36"
-                            onClick={handleReject}
-                            disabled={
-                                processing ||
-                                penyewaanDetail.status === "Ditolak"
-                            }
+                            className={`w-36 ${isCancelButtonDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            onClick={handleCancel}
+                            disabled={isCancelButtonDisabled()}
                         >
                             <Ban className="w-4 h-4 mr-2" />
-                            Tolak
+                            {getCancelButtonText()}
                         </Button>
                         <Button
-                            variant="success"
-                            className="w-36"
+                            variant="secondary"
+                            className={`w-36 ${isScheduleButtonDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
                             onClick={() => setSchedulingModalOpen(true)}
-                            disabled={
-                                processing ||
-                                penyewaanDetail.status !== "Menunggu"
-                            }
+                            disabled={isScheduleButtonDisabled()}
                         >
                             <CalendarPlus className="w-4 h-4 mr-2" />
-                            Jadwalkan
+                            {getScheduleButtonText()}
                         </Button>
                     </div>
                     <Button
@@ -265,80 +321,171 @@ export default function Show({ auth, penyewaanDetail }) {
                 </div>
             </div>
 
-            {/* Modal Penjadwalan */}
+            {/* Modal Penjadwalan dengan Waktu */}
             <Modal
                 show={schedulingModalOpen}
                 onClose={() => setSchedulingModalOpen(false)}
             >
-                <form onSubmit={handleScheduleSubmit} className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900">
-                        Buat Jadwal Pemasangan & Pembongkaran
-                    </h2>
-                    <div className="mt-6 space-y-4">
-                        <div>
-                            <InputLabel
-                                htmlFor="tanggal_pemasangan"
-                                value="Tanggal Pemasangan"
-                            />
-                            <TextInput
-                                id="tanggal_pemasangan"
-                                type="date"
-                                name="tanggal_pemasangan"
-                                value={data.tanggal_pemasangan}
-                                className="mt-1 block w-full"
-                                onChange={(e) =>
-                                    setData(
-                                        "tanggal_pemasangan",
-                                        e.target.value
-                                    )
-                                }
-                            />
-                            <InputError
-                                message={errors.tanggal_pemasangan}
-                                className="mt-2"
-                            />
-                        </div>
-                        <div>
-                            <InputLabel
-                                htmlFor="tanggal_pembongkaran"
-                                value="Tanggal Pembongkaran"
-                            />
-                            <TextInput
-                                id="tanggal_pembongkaran"
-                                type="date"
-                                name="tanggal_pembongkaran"
-                                value={data.tanggal_pembongkaran}
-                                className="mt-1 block w-full"
-                                onChange={(e) =>
-                                    setData(
-                                        "tanggal_pembongkaran",
-                                        e.target.value
-                                    )
-                                }
-                            />
-                            <InputError
-                                message={errors.tanggal_pembongkaran}
-                                className="mt-2"
-                            />
-                        </div>
+                <div className="p-6">
+                    {/* Header Modal */}
+                    <div className="bg-green-100 -m-6 mb-6 p-4 rounded-t-lg">
+                        <h2 className="text-lg font-medium text-gray-900 text-center">
+                            {getScheduleButtonText()}
+                        </h2>
                     </div>
-                    <div className="mt-6 flex justify-end">
-                        <Button
-                            type="button"
-                            variant="neutral"
-                            onClick={() => setSchedulingModalOpen(false)}
-                        >
-                            Batal
-                        </Button>
-                        <Button
-                            type="submit"
-                            className="ml-3"
-                            disabled={processing}
-                        >
-                            {processing ? "Menyimpan..." : "Simpan Jadwal"}
-                        </Button>
-                    </div>
-                </form>
+
+                    <form onSubmit={handleScheduleSubmit} className="space-y-6">
+                        {/* Info Penyewaan */}
+                        <div className="space-y-2 text-sm">
+                            <p>
+                                <span className="font-medium">Penyewa:</span>{" "}
+                                {pelanggan.nama}
+                            </p>
+                            <p>
+                                <span className="font-medium">Tenda:</span>{" "}
+                                {item_tenda.nama_tenda} - {item_tenda.jumlah}{" "}
+                                unit
+                            </p>
+                            <p>
+                                <span className="font-medium">
+                                    Tanggal sewa:
+                                </span>{" "}
+                                {penyewaanDetail.tanggal_sewa_formatted} -{" "}
+                                {penyewaanDetail.tanggal_selesai_formatted}
+                            </p>
+                        </div>
+
+                        {/* Jadwal Pemasangan */}
+                        <div className="space-y-4">
+                            <h3 className="font-medium text-gray-900">
+                                Jadwal Pemasangan
+                            </h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <InputLabel
+                                        htmlFor="tanggal_pemasangan"
+                                        value="Tanggal:"
+                                    />
+                                    <TextInput
+                                        id="tanggal_pemasangan"
+                                        type="date"
+                                        name="tanggal_pemasangan"
+                                        value={data.tanggal_pemasangan}
+                                        className="mt-1 block w-full"
+                                        onChange={(e) =>
+                                            setData(
+                                                "tanggal_pemasangan",
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                    <InputError
+                                        message={errors.tanggal_pemasangan}
+                                        className="mt-1"
+                                    />
+                                </div>
+                                <div>
+                                    <InputLabel
+                                        htmlFor="waktu_pemasangan"
+                                        value="Waktu:"
+                                    />
+                                    <TextInput
+                                        id="waktu_pemasangan"
+                                        type="time"
+                                        name="waktu_pemasangan"
+                                        value={data.waktu_pemasangan}
+                                        className="mt-1 block w-full"
+                                        onChange={(e) =>
+                                            setData(
+                                                "waktu_pemasangan",
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                    <InputError
+                                        message={errors.waktu_pemasangan}
+                                        className="mt-1"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Jadwal Pembongkaran */}
+                        <div className="space-y-4">
+                            <h3 className="font-medium text-gray-900">
+                                Jadwal Pembongkaran
+                            </h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <InputLabel
+                                        htmlFor="tanggal_pembongkaran"
+                                        value="Tanggal:"
+                                    />
+                                    <TextInput
+                                        id="tanggal_pembongkaran"
+                                        type="date"
+                                        name="tanggal_pembongkaran"
+                                        value={data.tanggal_pembongkaran}
+                                        className="mt-1 block w-full"
+                                        onChange={(e) =>
+                                            setData(
+                                                "tanggal_pembongkaran",
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                    <InputError
+                                        message={errors.tanggal_pembongkaran}
+                                        className="mt-1"
+                                    />
+                                </div>
+                                <div>
+                                    <InputLabel
+                                        htmlFor="waktu_pembongkaran"
+                                        value="Waktu:"
+                                    />
+                                    <TextInput
+                                        id="waktu_pembongkaran"
+                                        type="time"
+                                        name="waktu_pembongkaran"
+                                        value={data.waktu_pembongkaran}
+                                        className="mt-1 block w-full"
+                                        onChange={(e) =>
+                                            setData(
+                                                "waktu_pembongkaran",
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                    <InputError
+                                        message={errors.waktu_pembongkaran}
+                                        className="mt-1"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Tombol Aksi */}
+                        <div className="flex justify-center gap-3 pt-4">
+                            <Button
+                                type="button"
+                                variant="danger"
+                                onClick={() => setSchedulingModalOpen(false)}
+                                className="px-8"
+                            >
+                                Batal
+                            </Button>
+                            <Button
+                                type="submit"
+                                variant="primary"
+                                disabled={processing}
+                                className="px-8 bg-green-600 hover:bg-green-700"
+                            >
+                                {processing ? "Menyimpan..." : "Simpan"}
+                            </Button>
+                        </div>
+                    </form>
+                </div>
             </Modal>
         </PengelolaLayout>
     );
