@@ -17,7 +17,6 @@ class PenjadwalanController extends Controller
      */
     public function index()
     {
-        // 1. Mengambil data yang statusnya 'Menunggu' (Perlu Dijadwalkan)
         $perluDijadwalkan = Penyewaan::with(['pelanggan', 'tenda'])
             ->where('status', Penyewaan::STATUS_MENUNGGU)
             ->orderBy('tanggal_penyewaan', 'asc')
@@ -31,7 +30,6 @@ class PenjadwalanController extends Controller
                 'tanggal_sewa_selesai' => Carbon::parse($item->tanggal_berakhir)->isoFormat('D MMMM YYYY'),
             ]);
 
-        // 2. Mengambil data yang sudah terjadwal dengan melakukan JOIN
         $sudahTerjadwal = Penyewaan::query()
             ->with(['pelanggan', 'jadwal'])
             ->join('jadwal', 'penyewaan.id_penyewaan', '=', 'jadwal.id_penyewaan')
@@ -62,7 +60,6 @@ class PenjadwalanController extends Controller
      */
     public function show($id)
     {
-        // Mengambil data penyewaan dengan relasi yang diperlukan
         $penyewaan = Penyewaan::with([
                 'pelanggan', 
                 'tenda', 
@@ -71,26 +68,23 @@ class PenjadwalanController extends Controller
             ->where('id_penyewaan', $id)
             ->firstOrFail();
 
-        // Hitung durasi sewa berdasarkan tanggal_penyewaan dan tanggal_berakhir
         $durasiSewa = null;
         if ($penyewaan->tanggal_penyewaan && $penyewaan->tanggal_berakhir) {
             $tanggalMulai = Carbon::parse($penyewaan->tanggal_penyewaan);
             $tanggalSelesai = Carbon::parse($penyewaan->tanggal_berakhir);
-            $durasiHari = $tanggalMulai->diffInDays($tanggalSelesai) + 1; // +1 karena termasuk hari pertama
+            $durasiHari = $tanggalMulai->diffInDays($tanggalSelesai) + 1;
             $durasiSewa = $durasiHari . ' Hari';
         } else {
-            // Jika salah satu tanggal tidak ada, coba hitung dari durasi_penyewaan jika ada
             $durasiSewa = $penyewaan->durasi_penyewaan ? $penyewaan->durasi_penyewaan . ' Hari' : 'Tidak tersedia';
         }
 
-        // Format data untuk ditampilkan sesuai dengan gambar
         $detailPenjadwalan = [
             'id_penyewaan' => $penyewaan->id_penyewaan,
             'nama_pelanggan' => $penyewaan->pelanggan->nama,
             'status_penyewaan' => $penyewaan->status,
             'tanggal_sewa' => Carbon::parse($penyewaan->tanggal_penyewaan)->format('j F Y'),
             'durasi_sewa' => $durasiSewa,
-            'catatan' => $penyewaan->catatan ?? '-', // Menambahkan field catatan
+            'catatan' => $penyewaan->catatan ?? '-',
             'tanggal_pemasangan' => $penyewaan->jadwal 
                 ? $this->formatTanggalWaktu($penyewaan->jadwal->tanggal_pemasangan, $penyewaan->jadwal->waktu_pemasangan)
                 : null,
@@ -101,7 +95,13 @@ class PenjadwalanController extends Controller
                 'kode_tenda' => $penyewaan->tenda->id_tenda,
                 'nama_tenda' => $penyewaan->tenda->nama_tenda,
                 'jumlah' => $penyewaan->jumlah_tenda,
-            ]
+            ],
+            'jadwal_edit' => $penyewaan->jadwal ? [
+                'tanggal_pemasangan' => Carbon::parse($penyewaan->jadwal->tanggal_pemasangan)->format('Y-m-d'),
+                'waktu_pemasangan' => $penyewaan->jadwal->waktu_pemasangan,
+                'tanggal_pembongkaran' => Carbon::parse($penyewaan->jadwal->tanggal_pembongkaran)->format('Y-m-d'),
+                'waktu_pembongkaran' => $penyewaan->jadwal->waktu_pembongkaran,
+            ] : null
         ];
 
         return Inertia::render('Pengelola/Penjadwalan/Show', [
@@ -119,11 +119,9 @@ class PenjadwalanController extends Controller
         $carbonTanggal = Carbon::parse($tanggal);
         
         if ($waktu) {
-            // Format: 16:00, 17 April 2025
             $waktuFormatted = Carbon::parse($waktu)->format('H:i');
             return $waktuFormatted . ', ' . $carbonTanggal->format('j F Y');
         } else {
-            // Jika waktu tidak tersedia, tampilkan hanya tanggal
             return $carbonTanggal->format('j F Y');
         }
     }
@@ -144,14 +142,12 @@ class PenjadwalanController extends Controller
         try {
             DB::beginTransaction();
 
-            // Cek apakah sudah ada jadwal untuk penyewaan ini
             $existingJadwal = Jadwal::where('id_penyewaan', $request->id_penyewaan)->first();
             
             if ($existingJadwal) {
                 return back()->withErrors(['error' => 'Penyewaan ini sudah memiliki jadwal.']);
             }
 
-            // Buat jadwal baru
             $jadwal = new Jadwal();
             $jadwal->id_penyewaan = $request->id_penyewaan;
             $jadwal->tanggal_pemasangan = $request->tanggal_pemasangan;
@@ -160,7 +156,6 @@ class PenjadwalanController extends Controller
             $jadwal->waktu_pembongkaran = $request->waktu_pembongkaran;
             $jadwal->save();
 
-            // Update status penyewaan menjadi 'Terjadwal'
             $penyewaan = Penyewaan::findOrFail($request->id_penyewaan);
             $penyewaan->status = Penyewaan::STATUS_TERJADWAL;
             $penyewaan->save();
@@ -186,15 +181,23 @@ class PenjadwalanController extends Controller
             'waktu_pemasangan' => 'required|date_format:H:i',
             'tanggal_pembongkaran' => 'required|date|after_or_equal:tanggal_pemasangan',
             'waktu_pembongkaran' => 'required|date_format:H:i',
+        ], [
+            'tanggal_pemasangan.required' => 'Tanggal pemasangan harus diisi.',
+            'tanggal_pemasangan.date' => 'Format tanggal pemasangan tidak valid.',
+            'waktu_pemasangan.required' => 'Waktu pemasangan harus diisi.',
+            'waktu_pemasangan.date_format' => 'Format waktu pemasangan harus HH:MM.',
+            'tanggal_pembongkaran.required' => 'Tanggal pembongkaran harus diisi.',
+            'tanggal_pembongkaran.date' => 'Format tanggal pembongkaran tidak valid.',
+            'tanggal_pembongkaran.after_or_equal' => 'Tanggal pembongkaran harus sama atau setelah tanggal pemasangan.',
+            'waktu_pembongkaran.required' => 'Waktu pembongkaran harus diisi.',
+            'waktu_pembongkaran.date_format' => 'Format waktu pembongkaran harus HH:MM.',
         ]);
 
         try {
             DB::beginTransaction();
 
-            // Cari jadwal berdasarkan id_penyewaan
             $jadwal = Jadwal::where('id_penyewaan', $id)->firstOrFail();
             
-            // Update jadwal
             $jadwal->tanggal_pemasangan = $request->tanggal_pemasangan;
             $jadwal->waktu_pemasangan = $request->waktu_pemasangan;
             $jadwal->tanggal_pembongkaran = $request->tanggal_pembongkaran;
@@ -208,7 +211,7 @@ class PenjadwalanController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Terjadi kesalahan saat memperbarui jadwal.']);
+            return back()->withErrors(['error' => 'Terjadi kesalahan saat memperbarui jadwal: ' . $e->getMessage()]);
         }
     }
 }

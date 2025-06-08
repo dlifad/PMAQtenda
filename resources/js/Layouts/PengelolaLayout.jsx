@@ -98,7 +98,7 @@ export default function PengelolaLayout({ user, header, children }) {
                                 onClick={() => setSidebarOpen(!sidebarOpen)}
                                 className="p-2 rounded-md text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500 mr-3"
                             >
-                                {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                                {sidebarOpen ? <Menu className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                             </button>
                             <Link href={route("welcome")} className="flex items-center">
                                 <img src="/images/logo.png" alt="PMAQ Tenda Logo" className="h-8" />

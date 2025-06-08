@@ -50,7 +50,7 @@ export default function Index({
                 setSelectedItem(null);
             },
             onError: () => {
-                // Error akan ditampilkan otomatis dari Laravel
+
             },
         });
     };

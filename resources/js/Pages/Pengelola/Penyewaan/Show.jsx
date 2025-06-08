@@ -14,14 +14,10 @@ export default function Show({ auth, penyewaanDetail }) {
 
     const { data, setData, post, patch, processing, errors, reset } = useForm({
         status: "",
-        tanggal_pemasangan:
-            penyewaanDetail.jadwal?.tanggal_pemasangan,
-        waktu_pemasangan:
-            penyewaanDetail.jadwal?.waktu_pemasangan,
-        tanggal_pembongkaran:
-            penyewaanDetail.jadwal?.tanggal_pembongkaran,
-        waktu_pembongkaran:
-            penyewaanDetail.jadwal?.waktu_pembongkaran,
+        tanggal_pemasangan: penyewaanDetail.jadwal?.tanggal_pemasangan || "",
+        waktu_pemasangan: penyewaanDetail.jadwal?.waktu_pemasangan || "",
+        tanggal_pembongkaran: penyewaanDetail.jadwal?.tanggal_pembongkaran || "",
+        waktu_pembongkaran: penyewaanDetail.jadwal?.waktu_pembongkaran || "",
     });
 
     const getStatusTextColor = (status) => {
@@ -38,8 +34,7 @@ export default function Show({ auth, penyewaanDetail }) {
     // Fungsi untuk mengecek apakah button tolak/batal harus disabled
     const isCancelButtonDisabled = () => {
         const status = penyewaanDetail.status?.toLowerCase();
-        return processing || 
-               (status !== "menunggu" && status !== "terjadwal");
+        return processing || (status !== "menunggu" && status !== "terjadwal");
     };
 
     // Fungsi untuk mengecek apakah button jadwalkan harus disabled
@@ -96,21 +91,34 @@ export default function Show({ auth, penyewaanDetail }) {
                 {
                     status: getCancelStatus(),
                 },
-                { 
+                {
                     preserveScroll: true,
                     onSuccess: () => {
-                        console.log(`Status berhasil diubah menjadi ${getCancelStatus()}`);
+                        console.log(
+                            `Status berhasil diubah menjadi ${getCancelStatus()}`
+                        );
                     },
                     onError: (errors) => {
-                        console.error('Gagal mengubah status:', errors);
-                    }
+                        console.error("Gagal mengubah status:", errors);
+                    },
                 }
             );
         }
     };
 
-    const handleScheduleSubmit = (e) => {
-        e.preventDefault();
+    // Fungsi untuk membuka modal jadwalkan
+    const handleOpenModal = () => {
+        setSchedulingModalOpen(true);
+    };
+
+    // Fungsi untuk menutup modal jadwalkan
+    const handleCloseModal = () => {
+        setSchedulingModalOpen(false);
+        reset();
+    };
+
+    // Fungsi untuk submit jadwal
+    const handleSubmit = () => {
         post(
             route("pengelola.penyewaan.schedule", penyewaanDetail.id_penyewaan),
             {
@@ -160,7 +168,7 @@ export default function Show({ auth, penyewaanDetail }) {
 
             <div className="bg-white rounded-lg shadow-lg p-6 md:p-8 space-y-8">
                 <h3 className="font-bold">Detail Penyewaan</h3>
-                
+
                 {/* Top Section */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-6 border-b">
                     <div>
@@ -287,7 +295,11 @@ export default function Show({ auth, penyewaanDetail }) {
                     <div className="flex flex-row gap-3" id="action-buttons">
                         <Button
                             variant="danger"
-                            className={`w-36 ${isCancelButtonDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`w-36 ${
+                                isCancelButtonDisabled()
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
+                            }`}
                             onClick={handleCancel}
                             disabled={isCancelButtonDisabled()}
                         >
@@ -296,8 +308,12 @@ export default function Show({ auth, penyewaanDetail }) {
                         </Button>
                         <Button
                             variant="secondary"
-                            className={`w-36 ${isScheduleButtonDisabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            onClick={() => setSchedulingModalOpen(true)}
+                            className={`w-36 ${
+                                isScheduleButtonDisabled()
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
+                            }`}
+                            onClick={handleOpenModal}
                             disabled={isScheduleButtonDisabled()}
                         >
                             <CalendarPlus className="w-4 h-4 mr-2" />
@@ -316,172 +332,167 @@ export default function Show({ auth, penyewaanDetail }) {
                 </div>
             </div>
 
-            {/* Modal Penjadwalan dengan Waktu */}
-            <Modal
-                show={schedulingModalOpen}
-                onClose={() => setSchedulingModalOpen(false)}
-            >
-                <div className="p-6">
-                    {/* Header Modal */}
-                    <div className="bg-green-100 -m-6 mb-6 p-4 rounded-t-lg">
-                        <h2 className="text-lg font-medium text-gray-900 text-center">
-                            {getScheduleButtonText()}
-                        </h2>
+            {/* Modal Penjadwalan */}
+            {schedulingModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                        <div className="mb-4">
+                            <div className="bg-green-100 text-green-800 text-center py-2 rounded-lg mb-4">
+                                <h3 className="font-semibold">Jadwalkan</h3>
+                            </div>
+
+                            <div className="space-y-2 mb-6">
+                                <p>
+                                    <span className="font-medium">
+                                        Penyewa:
+                                    </span>{" "}
+                                    {pelanggan.nama}
+                                </p>
+                                <p>
+                                    <span className="font-medium">
+                                        Tenda:
+                                    </span>{" "}
+                                    {item_tenda.nama_tenda} - {item_tenda.jumlah} unit
+                                </p>
+                                <p>
+                                    <span className="font-medium">
+                                        Tanggal sewa:
+                                    </span>{" "}
+                                    {penyewaanDetail.tanggal_sewa_formatted} - {penyewaanDetail.tanggal_selesai_formatted}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            {/* Jadwal Pemasangan */}
+                            <div>
+                                <h4 className="font-medium mb-2">
+                                    Jadwal Pemasangan
+                                </h4>
+                                <div className="flex gap-4">
+                                    <div className="flex-1">
+                                        <label className="block text-sm text-gray-600 mb-1">
+                                            Tanggal:
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={data.tanggal_pemasangan}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "tanggal_pemasangan",
+                                                    e.target.value
+                                                )
+                                            }
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            required
+                                        />
+                                        {errors.tanggal_pemasangan && (
+                                            <p className="text-red-500 text-xs mt-1">
+                                                {errors.tanggal_pemasangan}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="block text-sm text-gray-600 mb-1">
+                                            Waktu:
+                                        </label>
+                                        <input
+                                            type="time"
+                                            value={data.waktu_pemasangan}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "waktu_pemasangan",
+                                                    e.target.value
+                                                )
+                                            }
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            required
+                                        />
+                                        {errors.waktu_pemasangan && (
+                                            <p className="text-red-500 text-xs mt-1">
+                                                {errors.waktu_pemasangan}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Jadwal Pembongkaran */}
+                            <div>
+                                <h4 className="font-medium mb-2">
+                                    Jadwal Pembongkaran
+                                </h4>
+                                <div className="flex gap-4">
+                                    <div className="flex-1">
+                                        <label className="block text-sm text-gray-600 mb-1">
+                                            Tanggal:
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={data.tanggal_pembongkaran}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "tanggal_pembongkaran",
+                                                    e.target.value
+                                                )
+                                            }
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            required
+                                        />
+                                        {errors.tanggal_pembongkaran && (
+                                            <p className="text-red-500 text-xs mt-1">
+                                                {errors.tanggal_pembongkaran}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="block text-sm text-gray-600 mb-1">
+                                            Waktu:
+                                        </label>
+                                        <input
+                                            type="time"
+                                            value={data.waktu_pembongkaran}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "waktu_pembongkaran",
+                                                    e.target.value
+                                                )
+                                            }
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            required
+                                        />
+                                        {errors.waktu_pembongkaran && (
+                                            <p className="text-red-500 text-xs mt-1">
+                                                {errors.waktu_pembongkaran}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Tombol Aksi */}
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={handleCloseModal}
+                                    className="flex-1 px-4 py-2 text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
+                                    disabled={processing}
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleSubmit}
+                                    className="flex-1 px-4 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50"
+                                    disabled={processing}
+                                >
+                                    {processing ? "Menyimpan..." : "Simpan"}
+                                </button>
+                            </div>
+                        </div>
                     </div>
-
-                    <form onSubmit={handleScheduleSubmit} className="space-y-6">
-                        {/* Info Penyewaan */}
-                        <div className="space-y-2 text-sm">
-                            <p>
-                                <span className="font-medium">Penyewa:</span>{" "}
-                                {pelanggan.nama}
-                            </p>
-                            <p>
-                                <span className="font-medium">Tenda:</span>{" "}
-                                {item_tenda.nama_tenda} - {item_tenda.jumlah}{" "}
-                                unit
-                            </p>
-                            <p>
-                                <span className="font-medium">
-                                    Tanggal sewa:
-                                </span>{" "}
-                                {penyewaanDetail.tanggal_sewa_formatted} -{" "}
-                                {penyewaanDetail.tanggal_selesai_formatted}
-                            </p>
-                        </div>
-
-                        {/* Jadwal Pemasangan */}
-                        <div className="space-y-4">
-                            <h3 className="font-medium text-gray-900">
-                                Jadwal Pemasangan
-                            </h3>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <InputLabel
-                                        htmlFor="tanggal_pemasangan"
-                                        value="Tanggal:"
-                                    />
-                                    <TextInput
-                                        id="tanggal_pemasangan"
-                                        type="date"
-                                        name="tanggal_pemasangan"
-                                        value={data.tanggal_pemasangan}
-                                        className="mt-1 block w-full"
-                                        onChange={(e) =>
-                                            setData(
-                                                "tanggal_pemasangan",
-                                                e.target.value
-                                            )
-                                        }
-                                    />
-                                    <InputError
-                                        message={errors.tanggal_pemasangan}
-                                        className="mt-1"
-                                    />
-                                </div>
-                                <div>
-                                    <InputLabel
-                                        htmlFor="waktu_pemasangan"
-                                        value="Waktu:"
-                                    />
-                                    <TextInput
-                                        id="waktu_pemasangan"
-                                        type="time"
-                                        name="waktu_pemasangan"
-                                        value={data.waktu_pemasangan}
-                                        className="mt-1 block w-full"
-                                        onChange={(e) =>
-                                            setData(
-                                                "waktu_pemasangan",
-                                                e.target.value
-                                            )
-                                        }
-                                    />
-                                    <InputError
-                                        message={errors.waktu_pemasangan}
-                                        className="mt-1"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Jadwal Pembongkaran */}
-                        <div className="space-y-4">
-                            <h3 className="font-medium text-gray-900">
-                                Jadwal Pembongkaran
-                            </h3>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <InputLabel
-                                        htmlFor="tanggal_pembongkaran"
-                                        value="Tanggal:"
-                                    />
-                                    <TextInput
-                                        id="tanggal_pembongkaran"
-                                        type="date"
-                                        name="tanggal_pembongkaran"
-                                        value={data.tanggal_pembongkaran}
-                                        className="mt-1 block w-full"
-                                        onChange={(e) =>
-                                            setData(
-                                                "tanggal_pembongkaran",
-                                                e.target.value
-                                            )
-                                        }
-                                    />
-                                    <InputError
-                                        message={errors.tanggal_pembongkaran}
-                                        className="mt-1"
-                                    />
-                                </div>
-                                <div>
-                                    <InputLabel
-                                        htmlFor="waktu_pembongkaran"
-                                        value="Waktu:"
-                                    />
-                                    <TextInput
-                                        id="waktu_pembongkaran"
-                                        type="time"
-                                        name="waktu_pembongkaran"
-                                        value={data.waktu_pembongkaran}
-                                        className="mt-1 block w-full"
-                                        onChange={(e) =>
-                                            setData(
-                                                "waktu_pembongkaran",
-                                                e.target.value
-                                            )
-                                        }
-                                    />
-                                    <InputError
-                                        message={errors.waktu_pembongkaran}
-                                        className="mt-1"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Tombol Aksi */}
-                        <div className="flex justify-center gap-3 pt-4">
-                            <Button
-                                type="button"
-                                variant="danger"
-                                onClick={() => setSchedulingModalOpen(false)}
-                                className="px-8"
-                            >
-                                Batal
-                            </Button>
-                            <Button
-                                type="submit"
-                                variant="primary"
-                                disabled={processing}
-                                className="px-8 bg-green-600 hover:bg-green-700"
-                            >
-                                {processing ? "Menyimpan..." : "Simpan"}
-                            </Button>
-                        </div>
-                    </form>
                 </div>
-            </Modal>
+            )}
         </PengelolaLayout>
     );
 }

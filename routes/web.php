@@ -63,6 +63,7 @@ Route::middleware(['auth', 'verified', 'role:pengelola'])->prefix('pengelola')->
             Route::get('/', 'index')->name('index'); // pengelola.penjadwalan.index
             Route::post('/', 'store')->name('store'); // pengelola.penjadwalan.store
             Route::get('/{id}', 'show')->name('show'); // pengelola.penjadwalan.show - ROUTE BARU
+            Route::put('/{id}', 'update')->name('update');
         });
 });
 
