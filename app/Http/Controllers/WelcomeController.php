@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Tenda;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class WelcomeController extends Controller
 {
@@ -16,7 +17,6 @@ class WelcomeController extends Controller
      */
     public function index()
     {
-
         if (Auth::check()) {
             $user = Auth::user();
             if ($user->role === 'pengelola') {
@@ -26,10 +26,23 @@ class WelcomeController extends Controller
             }
         }
 
-        $tendas = Tenda::all();
+        $tendas = Tenda::all()->map(function ($tenda) {
+            return [
+                'id_tenda' => $tenda->id_tenda,
+                'nama_tenda' => $tenda->nama_tenda,
+                'deskripsi' => $tenda->deskripsi,
+                'isi_paket' => $tenda->isi_paket,
+                'jumlah' => $tenda->jumlah,
+                'harga' => $tenda->harga,
+                'gambar_url' => $tenda->gambar ? Storage::url($tenda->gambar) : null,
+            ];
+        });
 
         return Inertia::render('Welcome', [
-            'tendas' => $tendas
+            'tendas' => $tendas,
+            'auth' => [
+                'user' => Auth::user(),
+            ],
         ]);
     }
 }

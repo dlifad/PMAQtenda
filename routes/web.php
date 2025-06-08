@@ -46,21 +46,23 @@ Route::get('/lupa-id-penyewaan', [LupaIdController::class, 'showForm'])->name('p
 Route::post('/lupa-id-penyewaan/cari', [LupaIdController::class, 'findIds'])->name('penyewaan.lupa_id.find');
 
 // Rute untuk Dashboard Pengelola
-Route::middleware(['auth', 'verified', 'role:pengelola'])
-    ->prefix('pengelola')
-    ->name('pengelola.')
-    ->group(function () {
-        Route::get('/dashboard', [PengelolaDashboardController::class, 'index'])
-            ->name('dashboard');
+Route::middleware(['auth', 'verified', 'role:pengelola'])->prefix('pengelola')->name('pengelola.')->group(function () {
+        Route::get('/dashboard', [PengelolaDashboardController::class, 'index'])->name('dashboard');
         Route::resource('tenda', PengelolaTendaController::class);
-        Route::get('penyewaan', [PengelolaPenyewaanController::class, 'index'])->name('penyewaan.index');
+        
+        Route::controller(PengelolaPenyewaanController::class)->prefix('penyewaan')->name('penyewaan.')->group(function () {
+            Route::get('/', 'index')->name('index'); // pengelola.penyewaan.index
+            Route::get('/{penyewaan}', 'show')->name('show'); // pengelola.penyewaan.show
+            Route::patch('/{penyewaan}/update-status', 'updateStatus')->name('updateStatus'); // pengelola.penyewaan.updateStatus
+            Route::post('/{penyewaan}/schedule', 'schedule')->name('schedule'); // pengelola.penyewaan.schedule
+            // Anda bisa menambahkan rute lain seperti 'cetak' di sini jika controller-nya berbeda
+        });
     });
 
 
 // Rute untuk Dashboard Petugas Lapangan
 Route::middleware(['auth', 'verified', 'role:petugas_lapangan'])->group(function () {
-    Route::get('/petugas/dashboard', [PetugasDashboardController::class, 'index'])
-        ->name('petugas.dashboard');
+    Route::get('/petugas/dashboard', [PetugasDashboardController::class, 'index'])->name('petugas.dashboard');
     // Rute lain untuk petugas jika ada
 });
 
