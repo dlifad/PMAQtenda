@@ -75,7 +75,7 @@ export default function Dashboard({ auth, stats, penyewaanTerbaru }) {
                 <div className="bg-white shadow-md rounded-lg">
                     <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                         <h3 className="text-lg font-semibold text-gray-800">Penyewaan Terbaru</h3>
-                        <Link href="#" className="text-sm text-green-600 hover:text-green-800 font-medium flex items-center">
+                        <Link href={route("pengelola.penyewaan.index")} className="text-sm text-green-600 hover:text-green-800 font-medium flex items-center">
                             Lihat semua
                         </Link>
                     </div>
