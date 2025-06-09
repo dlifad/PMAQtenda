@@ -14,31 +14,18 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    /**
-     * Menampilkan dashboard untuk petugas lapangan.
-     * Lokasi: app/Http/Controllers/Petugas/DashboardController.php
-     */
     public function index(Request $request)
     {
         $today = Carbon::today()->toDateString();
-
-        // Statistik untuk Card - perbaiki query untuk menghitung berdasarkan status jadwal
         $totalJadwal = Jadwal::count();
-
-        // Hitung jadwal berdasarkan status di tabel jadwal, bukan penyewaan
-        $menungguCount = Jadwal::where('status', 'terjadwal')->count();
+        $menungguCount = Jadwal::where('status', '!=', 'terbongkar')->count();
         $pemasanganHariIni = Jadwal::where('status', 'terjadwal')
             ->whereDate('tanggal_pemasangan', $today)->count();
         $pembongkaranHariIni = Jadwal::where('status', 'terpasang')
             ->whereDate('tanggal_pembongkaran', $today)->count();
-
-        // --- PERBAIKAN LOGIKA QUERY ---
-        // Ambil semua jadwal dengan relasi penyewaan, pelanggan, dan tenda
         $jadwals = Jadwal::with(['penyewaan.pelanggan', 'penyewaan.tenda'])
             ->whereIn('status', ['terjadwal', 'terpasang'])
             ->get();
-
-        // Buat daftar tugas dari data jadwal
         $daftarTugas = new Collection();
 
         foreach ($jadwals as $jadwal) {
@@ -134,7 +121,6 @@ class DashboardController extends Controller
                 'lokasi' => $item['lokasi'],
                 'jenis_jadwal' => $item['jenis_jadwal'],
                 'status' => $item['status'],
-                // Data tambahan untuk modal
                 'nama_tenda' => $item['nama_tenda'],
                 'jumlah_tenda' => $item['jumlah_tenda'],
                 'tanggal_pemasangan' => isset($item['tanggal_pemasangan']) ? Carbon::parse($item['tanggal_pemasangan'])->isoFormat('D MMMM YYYY') : null,
@@ -175,48 +161,40 @@ class DashboardController extends Controller
 
     public function show($id_jadwal, Request $request)
     {
-        // Ambil parameter jenis dari query string, default ke pemasangan
         $jenis = $request->get('jenis', 'pemasangan');
 
-        // Validasi jenis parameter
         if (!in_array($jenis, ['pemasangan', 'pembongkaran'])) {
             $jenis = 'pemasangan';
         }
 
-        // Ambil data jadwal dengan relasi yang diperlukan
         $jadwal = Jadwal::with(['penyewaan.pelanggan', 'penyewaan.tenda'])
             ->where('id_jadwal', $id_jadwal)
             ->firstOrFail();
 
-        // Tentukan tanggal dan waktu berdasarkan jenis tugas
         $tanggal_tugas = $jenis === 'pemasangan' ? $jadwal->tanggal_pemasangan : $jadwal->tanggal_pembongkaran;
         $waktu_tugas = $jenis === 'pemasangan' ? $jadwal->waktu_pemasangan : $jadwal->waktu_pembongkaran;
 
-        // Format data untuk tampilan detail
         $detailJadwal = [
             'id_jadwal' => $jadwal->id_jadwal,
             'id_penyewaan' => $jadwal->id_penyewaan,
             'status' => $jadwal->status,
-            'jenis_tugas' => $jenis, // Tambahkan jenis tugas
+            'jenis_tugas' => $jenis,
 
-            // Tanggal dan waktu sesuai jenis tugas
             'tanggal_tugas' => Carbon::parse($tanggal_tugas)->isoFormat('D MMMM YYYY'),
             'waktu_tugas' => Carbon::parse($waktu_tugas)->format('H:i'),
 
-            // Data lengkap untuk referensi
             'tanggal_pemasangan' => Carbon::parse($jadwal->tanggal_pemasangan)->isoFormat('D MMMM YYYY'),
             'waktu_pemasangan' => Carbon::parse($jadwal->waktu_pemasangan)->format('H:i'),
             'tanggal_pembongkaran' => Carbon::parse($jadwal->tanggal_pembongkaran)->isoFormat('D MMMM YYYY'),
             'waktu_pembongkaran' => Carbon::parse($jadwal->waktu_pembongkaran)->format('H:i'),
             'catatan_penyewa' => $jadwal->penyewaan->catatan ?? '-',
 
-            // Data Tenda
             'tenda' => [
                 'nama' => $jadwal->penyewaan->tenda->nama_tenda ?? 'Tidak tersedia',
                 'jumlah' => $jadwal->penyewaan->jumlah_tenda ?? 0,
             ],
 
-            // Data Penyewa
+
             'penyewa' => [
                 'nama' => $jadwal->penyewaan->pelanggan->nama,
                 'nomor_telp' => $jadwal->penyewaan->pelanggan->nomor_telp,
