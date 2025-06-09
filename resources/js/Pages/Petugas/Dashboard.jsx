@@ -30,28 +30,17 @@ export default function Dashboard({ auth, stats, daftarJadwal }) {
     const [selectedJadwal, setSelectedJadwal] = useState(null);
     const [selectedStatus, setSelectedStatus] = useState('');
 
-    /**
-     * Fungsi untuk menentukan warna badge status berdasarkan status jadwal
-     * Status yang digunakan: terjadwal, terpasang, terbongkar
-     */
-    const getStatusBadgeColor = (status) => {
-        const s = status?.toLowerCase();
-        if (s === 'terjadwal') return "text-blue-800 bg-blue-100";
-        if (s === 'terpasang') return "text-indigo-800 bg-indigo-100";
-        if (s === 'terbongkar') return "text-green-800 bg-green-100";
-        return "text-gray-800 bg-gray-100";
-    };
-
-    /**
-     * Fungsi untuk menampilkan teks status yang user-friendly
-     */
-    const getStatusDisplayText = (status) => {
-        const statusMap = {
-            'terjadwal': 'Terjadwal',
-            'terpasang': 'Terpasang',
-            'terbongkar': 'Terbongkar'
-        };
-        return statusMap[status?.toLowerCase()] || status;
+    const getStatusColor = (status) => {
+        switch (status?.toLowerCase()) {
+            case "terpasang":
+                return "text-status-berlangsung";
+            case "terbongkar":
+                return "text-status-selesai";
+            case "terjadwal":
+                return "text-status-terjadwal";
+            default:
+                return "text-gray-600";
+        }
     };
 
     const handleOpenModal = (jadwal) => {
@@ -122,21 +111,21 @@ export default function Dashboard({ auth, stats, daftarJadwal }) {
                         colorClass="bg-gray-500" 
                     />
                     <StatCard 
-                        title="Menunggu Penugasan" 
+                        title="Menunggu" 
                         value={stats.menunggu} 
                         icon={<Clock />} 
-                        colorClass="bg-yellow-500" 
+                        colorClass="bg-blue-500" 
                     />
                     <StatCard 
                         title="Pemasangan Hari Ini" 
                         value={stats.pemasanganHariIni} 
-                        icon={<ArrowDownCircle />} 
-                        colorClass="bg-blue-500" 
+                        icon={<ArrowUpCircle />} 
+                        colorClass="bg-purple-500" 
                     />
                     <StatCard 
                         title="Pembongkaran Hari Ini" 
                         value={stats.pembongkaranHariIni} 
-                        icon={<ArrowUpCircle />} 
+                        icon={<ArrowDownCircle />} 
                         colorClass="bg-green-500" 
                     />
                 </div>
@@ -188,8 +177,8 @@ export default function Dashboard({ auth, stats, daftarJadwal }) {
                                                 {jadwal.jenis_jadwal}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(jadwal.status)}`}>
-                                                    {getStatusDisplayText(jadwal.status)}
+                                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(jadwal.status)}`}>
+                                                    {jadwal.status}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm">
