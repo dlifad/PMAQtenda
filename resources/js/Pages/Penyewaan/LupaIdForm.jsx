@@ -71,18 +71,26 @@ export default function LupaIdForm({ auth }) {
                                 Cek Penyewaan Tenda
                             </h1>
                             <p className="text-gray-600 mt-2 text-sm">
-                                Masukkan nama penyewa, nomor telepon, dan tanggal sewa yang sesuai dengan data penyewaan
+                                Masukkan nama penyewa, nomor telepon, dan
+                                tanggal sewa yang sesuai dengan data penyewaan
                             </p>
                         </div>
                         <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg">
-                            <form onSubmit={handleSubmit} className="space-y-5 mb-6">
-                            {searchError && !foundPenyewaanIds && !processing && (
-                                <div className="p-4 bg-red-50  text-red-700 rounded-md">
-                                    <div className="flex items-center">
-                                        <span className="text-sm">{searchError}</span>
-                                    </div>
-                                </div>
-                            )}
+                            <form
+                                onSubmit={handleSubmit}
+                                className="space-y-5 mb-6"
+                            >
+                                {searchError &&
+                                    !foundPenyewaanIds &&
+                                    !processing && (
+                                        <div className="p-4 bg-red-50  text-red-700 rounded-md">
+                                            <div className="flex items-center">
+                                                <span className="text-sm">
+                                                    {searchError}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
                                 <div>
                                     <InputLabel
                                         htmlFor="nama_penyewa"
@@ -181,24 +189,32 @@ export default function LupaIdForm({ auth }) {
                                         disabled={processing}
                                         variant="secondary"
                                     >
-                                        {processing ? 'Mencari...' : 'Cari'}
+                                        {processing ? "Mencari..." : "Cari"}
                                     </Button>
                                 </div>
                             </form>
 
-                            {processing && !foundPenyewaanIds && !searchError && (
-                                <div className="text-center py-6 mt-6"><p className="text-gray-500">Mencari...</p></div>
-                            )}
+                            {processing &&
+                                !foundPenyewaanIds &&
+                                !searchError && (
+                                    <div className="text-center py-6 mt-6">
+                                        <p className="text-gray-500">
+                                            Mencari...
+                                        </p>
+                                    </div>
+                                )}
 
-
-                            {foundPenyewaanIds && foundPenyewaanIds.length > 0 && !processing && (
-                                <div className="mt-8 border border-gray-200 rounded-lg shadow-sm">
-                                    <div className="bg-gray-50 px-6 py-3 border-b border-gray-200 rounded-t-lg">
-                                        <div className="flex items-center">
-                                            <AlertCircle className="h-5 w-5 text-red-500 mr-3 flex-shrink-0" />
-                                            <span className="text-sm">
-                                                {searchError}
-                                            </span>
+                            {foundPenyewaanIds &&
+                                foundPenyewaanIds.length > 0 &&
+                                !processing && (
+                                    <div className="mt-8 border border-gray-200 rounded-lg shadow-sm">
+                                        <div className="bg-gray-50 px-6 py-3 border-b border-gray-200 rounded-t-lg">
+                                            <div className="flex items-center">
+                                                <AlertCircle className="h-5 w-5 text-red-500 mr-3 flex-shrink-0" />
+                                                <span className="text-sm">
+                                                    {searchError}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
