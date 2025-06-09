@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import PetugasLayout from "@/Layouts/PetugasLayout";
-import { Head, router } from "@inertiajs/react";
+import { Link, Head, router } from "@inertiajs/react";
 import Modal from "@/Components/Modal";
 import Button from "@/Components/Button";
 
@@ -12,11 +12,11 @@ export default function Show({ auth, jadwal }) {
     const getStatusColor = (status) => {
         switch (status?.toLowerCase()) {
             case "terpasang":
-                return "text-green-600";
+                return "text-status-berlangsung";
             case "terbongkar":
-                return "text-red-600";
+                return "text-status-selesai";
             case "terjadwal":
-                return "text-blue-600";
+                return "text-status-terjadwal";
             default:
                 return "text-gray-600";
         }
@@ -112,14 +112,17 @@ export default function Show({ auth, jadwal }) {
     return (
         <PetugasLayout user={auth.user}>
             <Head title={`Detail Jadwal ${jadwal.jenis_tugas}`} />
-            <div className="px-6 py-8 max-w-6xl mx-auto min-h-screen">
+            <div className="px-6 py-8 max-w-6xl">
                 {/* Breadcrumb */}
                 <div className="text-green-700 mb-4 font-medium">
-                    Jadwal / {jadwal.penyewa.nama} / {jadwal.jenis_tugas}
+                    <Link href={route('petugas.dashboard')} className="hover:underline">
+                        Jadwal
+                    </Link>{" "}
+                    / {jadwal.penyewa.nama}
                 </div>
 
                 {/* Box utama */}
-                <div className="bg-white shadow rounded-lg border p-6 mb-8">
+                <div className="bg-gray-50 shadow-sm p-6 mb-8">
                     <h2 className="font-bold text-gray-800 mb-4">Tenda</h2>
                     <table className="w-full text-sm">
                         <thead>
@@ -140,7 +143,7 @@ export default function Show({ auth, jadwal }) {
                 </div>
 
                 {/* Lokasi dengan judul dinamis */}
-                <div className="bg-white shadow rounded-lg border p-6">
+                <div className="bg-gray-50 shadow-sm p-6">
                     <h2 className="font-bold text-gray-800 mb-4">
                         {getJudulTugas()}
                     </h2>
@@ -201,19 +204,23 @@ export default function Show({ auth, jadwal }) {
                         </div>
                     </div>
 
-                    {/* Tombol Ubah Status - Selalu aktif */}
-                    <div className="mt-8 text-center">
-                        <button
+                    {/* Tombol Ubah Status*/}
+                    <div className="mt-8 flex justify-center items-center">
+                        <Button
                             onClick={handleOpenModal}
-                            className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded transition"
+                            variant="secondary"
                         >
                             Ubah Status
-                        </button>
+                        </Button>
                     </div>
                 </div>
 
                 {/* Modal untuk Ubah Status - Design sesuai Dashboard */}
-                <Modal show={showModal} onClose={handleCloseModal} maxWidth="md">
+                <Modal
+                    show={showModal}
+                    onClose={handleCloseModal}
+                    maxWidth="md"
+                >
                     <div className="bg-white rounded-lg">
                         {/* Header Modal dengan background hijau */}
                         <div className="bg-green-100 px-6 py-4 text-center rounded-t-lg">
@@ -235,7 +242,8 @@ export default function Show({ auth, jadwal }) {
                                         :
                                     </span>
                                     <span className="ml-2">
-                                        {jadwal.tanggal_tugas}, {jadwal.waktu_tugas}
+                                        {jadwal.tanggal_tugas},{" "}
+                                        {jadwal.waktu_tugas}
                                     </span>
                                 </div>
                                 <div>
@@ -246,7 +254,9 @@ export default function Show({ auth, jadwal }) {
                                     </span>
                                 </div>
                                 <div>
-                                    <span className="font-medium">Penyewa :</span>
+                                    <span className="font-medium">
+                                        Penyewa :
+                                    </span>
                                     <span className="ml-2">
                                         {jadwal.penyewa.nama}
                                     </span>
@@ -265,12 +275,16 @@ export default function Show({ auth, jadwal }) {
                                             type="radio"
                                             name="status"
                                             value="terjadwal"
-                                            checked={selectedStatus === "terjadwal"}
+                                            checked={
+                                                selectedStatus === "terjadwal"
+                                            }
                                             onChange={() =>
                                                 handleStatusChange("terjadwal")
                                             }
                                             className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
-                                            disabled={jadwal.status === "terbongkar"}
+                                            disabled={
+                                                jadwal.status === "terbongkar"
+                                            }
                                         />
                                         <span className="text-sm text-gray-700">
                                             Terjadwal
@@ -283,12 +297,16 @@ export default function Show({ auth, jadwal }) {
                                             type="radio"
                                             name="status"
                                             value="terpasang"
-                                            checked={selectedStatus === "terpasang"}
+                                            checked={
+                                                selectedStatus === "terpasang"
+                                            }
                                             onChange={() =>
                                                 handleStatusChange("terpasang")
                                             }
                                             className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
-                                            disabled={jadwal.status === "terbongkar"}
+                                            disabled={
+                                                jadwal.status === "terbongkar"
+                                            }
                                         />
                                         <span className="text-sm text-gray-700">
                                             Terpasang
@@ -301,7 +319,9 @@ export default function Show({ auth, jadwal }) {
                                             type="radio"
                                             name="status"
                                             value="terbongkar"
-                                            checked={selectedStatus === "terbongkar"}
+                                            checked={
+                                                selectedStatus === "terbongkar"
+                                            }
                                             onChange={() =>
                                                 handleStatusChange("terbongkar")
                                             }
@@ -326,7 +346,8 @@ export default function Show({ auth, jadwal }) {
                                 <button
                                     onClick={handleStatusUpdate}
                                     disabled={
-                                        selectedStatus === jadwal.status || isUpdating
+                                        selectedStatus === jadwal.status ||
+                                        isUpdating
                                     }
                                     className="px-6 py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-md transition-colors duration-200"
                                 >
