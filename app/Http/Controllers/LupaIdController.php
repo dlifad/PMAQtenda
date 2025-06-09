@@ -73,7 +73,7 @@ class LupaIdController extends Controller
         }
 
         return redirect()->route('penyewaan.lupa_id.form')
-            ->with('lupa_id_error', 'Tidak ditemukan data penyewaan yang cocok dengan informasi yang Anda berikan.')
+            ->with('lupa_id_error', 'Tidak ditemukan Penyewaan yang cocok dengan informasi yang Anda berikan.')
             ->withInput();
     }
 }

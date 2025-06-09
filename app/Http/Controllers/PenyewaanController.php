@@ -319,10 +319,10 @@ class PenyewaanController extends Controller
         if ($penyewaan) {
             return redirect()->route('penyewaan.detail', ['id_penyewaan' => $penyewaan->id_penyewaan]);
         } else {
-            return redirect()->route('penyewaan.check.form')
-                ->with('penyewaan_check_error', 'Data penyewaan dengan ID tersebut tidak ditemukan.')
-                ->with('searched_penyewaan_id', $customId)
-                ->withInput();
+            return Inertia::render('Penyewaan/CekForm', [
+                'penyewaan_check_error' => 'Penyewaan dengan ID tersebut tidak ditemukan.',
+                'searched_penyewaan_id' => $customId,
+            ]);
         }
     }
 

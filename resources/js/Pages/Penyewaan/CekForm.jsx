@@ -10,9 +10,9 @@ import InputError from '@/Components/InputError';
 
 export default function CekForm({ auth }) {
     const { props } = usePage();
-    const penyewaanError =
-        props.errors?.id_penyewaan_cek || props.flash?.penyewaan_check_error;
-    const initialSearchedId = props.flash?.searched_penyewaan_id || "";
+    const penyewaanError = props.penyewaan_check_error || props.errors?.id_penyewaan_cek;
+    const initialSearchedId = props.searched_penyewaan_id || '';
+
 
     const { data, setData, post, processing, errors, clearErrors } = useForm({
         id_penyewaan_cek: initialSearchedId,
@@ -44,10 +44,14 @@ export default function CekForm({ auth }) {
                             </p>
                         </div>
                         <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg">
-                            <form
-                                onSubmit={handleSubmit}
-                                className="space-y-4 mb-6"
-                            >
+                            <form onSubmit={handleSubmit} className="space-y-4 mb-6">
+                                {penyewaanError && (
+                                    <div className="p-4 bg-red-50  text-red-700 rounded-md">
+                                        <div className="flex items-center">
+                                            <span className="text-sm">{penyewaanError}</span>
+                                        </div>
+                                    </div>
+                                )}
                                 <div>
                                     <InputLabel
                                         htmlFor="id_penyewaan_cek"
@@ -69,20 +73,9 @@ export default function CekForm({ auth }) {
                                         required
                                         autoFocus
                                     />
-                                    <InputError
-                                        message={
-                                            errors.id_penyewaan_cek ||
-                                            penyewaanError
-                                        }
-                                        className="mt-1 text-xs"
-                                    />
-                                    <div className="text-right mt-1.5">
-                                        <Link
-                                            href={route(
-                                                "penyewaan.lupa_id.form"
-                                            )}
-                                            className="text-xs text-green-600 hover:text-green-800 hover:underline"
-                                        >
+                                    {/* <InputError message={errors.id_penyewaan_cek || penyewaanError} className="mt-1 text-xs" /> */}
+                                     <div className="text-right mt-1.5">
+                                        <Link href={route('penyewaan.lupa_id.form')} className="text-xs text-green-600 hover:text-green-800 hover:underline">
                                             Lupa ID Penyewaan?
                                         </Link>
                                     </div>
@@ -90,7 +83,6 @@ export default function CekForm({ auth }) {
                                 <div className="pt-2 flex justify-center">
                                     <Button
                                         type="submit"
-                                        className=""
                                         disabled={processing}
                                         variant="secondary"
                                     >

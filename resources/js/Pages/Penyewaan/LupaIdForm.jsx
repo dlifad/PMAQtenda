@@ -68,18 +68,21 @@ export default function LupaIdForm({ auth }) {
                     <div className="container mx-auto px-4 max-w-lg">
                         <div className="text-center mb-8">
                             <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-                                Lupa ID Penyewaan Anda?
+                                Cek Penyewaan Tenda
                             </h1>
                             <p className="text-gray-600 mt-2 text-sm">
-                                Masukkan detail berikut untuk membantu kami
-                                menemukan ID penyewaan Anda.
+                                Masukkan nama penyewa, nomor telepon, dan tanggal sewa yang sesuai dengan data penyewaan
                             </p>
                         </div>
                         <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg">
-                            <form
-                                onSubmit={handleSubmit}
-                                className="space-y-5 mb-6"
-                            >
+                            <form onSubmit={handleSubmit} className="space-y-5 mb-6">
+                            {searchError && !foundPenyewaanIds && !processing && (
+                                <div className="p-4 bg-red-50  text-red-700 rounded-md">
+                                    <div className="flex items-center">
+                                        <span className="text-sm">{searchError}</span>
+                                    </div>
+                                </div>
+                            )}
                                 <div>
                                     <InputLabel
                                         htmlFor="nama_penyewa"
@@ -106,10 +109,7 @@ export default function LupaIdForm({ auth }) {
                                             autoFocus
                                         />
                                     </div>
-                                    <InputError
-                                        message={errors.nama_penyewa}
-                                        className="mt-1 text-xs"
-                                    />
+                                    {/* <InputError message={errors.nama_penyewa} className="mt-1 text-xs" /> */}
                                 </div>
                                 <div>
                                     <InputLabel
@@ -137,10 +137,7 @@ export default function LupaIdForm({ auth }) {
                                             required
                                         />
                                     </div>
-                                    <InputError
-                                        message={errors.nomor_telepon}
-                                        className="mt-1 text-xs"
-                                    />
+                                    {/* <InputError message={errors.nomor_telepon} className="mt-1 text-xs" /> */}
                                 </div>
                                 <div>
                                     <InputLabel
@@ -167,10 +164,7 @@ export default function LupaIdForm({ auth }) {
                                             required
                                         />
                                     </div>
-                                    <InputError
-                                        message={errors.tanggal_sewa_lupa}
-                                        className="mt-1 text-xs"
-                                    />
+                                    {/* <InputError message={errors.tanggal_sewa_lupa} className="mt-1 text-xs" /> */}
                                     <div className="text-right mt-1.5">
                                         <Link
                                             href={route("penyewaan.check.form")}
@@ -184,32 +178,22 @@ export default function LupaIdForm({ auth }) {
                                 <div className="pt-2 flex justify-center">
                                     <Button
                                         type="submit"
-                                        className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-2.5 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition ease-in-out duration-150"
                                         disabled={processing}
                                         variant="secondary"
                                     >
-                                        {processing
-                                            ? "Mencari..."
-                                            : "Cari ID Penyewaan"}
+                                        {processing ? 'Mencari...' : 'Cari'}
                                     </Button>
                                 </div>
                             </form>
 
-                            {processing &&
-                                !foundPenyewaanIds &&
-                                !searchError && (
-                                    <div className="text-center py-6 mt-6">
-                                        <p className="text-gray-500">
-                                            Mencari...
-                                        </p>
-                                    </div>
-                                )}
+                            {processing && !foundPenyewaanIds && !searchError && (
+                                <div className="text-center py-6 mt-6"><p className="text-gray-500">Mencari...</p></div>
+                            )}
 
-                            {searchError &&
-                                !foundPenyewaanIds &&
-                                !processing && (
-                                    <div className="mt-6 p-4 bg-red-50 border-l-4 border-red-400 text-red-700 rounded-md">
-                                        {/* ... (kode error message) ... */}
+
+                            {foundPenyewaanIds && foundPenyewaanIds.length > 0 && !processing && (
+                                <div className="mt-8 border border-gray-200 rounded-lg shadow-sm">
+                                    <div className="bg-gray-50 px-6 py-3 border-b border-gray-200 rounded-t-lg">
                                         <div className="flex items-center">
                                             <AlertCircle className="h-5 w-5 text-red-500 mr-3 flex-shrink-0" />
                                             <span className="text-sm">
