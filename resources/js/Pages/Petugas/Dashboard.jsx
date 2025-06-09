@@ -43,11 +43,6 @@ export default function Dashboard({ auth, stats, daftarJadwal }) {
         }
     };
 
-    /**
-     * Fungsi untuk menentukan URL detail berdasarkan jenis jadwal
-     * @param {Object} jadwal 
-     * @returns {string} URL dengan parameter jenis
-     */
     const getDetailUrl = (jadwal) => {
         const jenisParam = jadwal.jenis_jadwal.toLowerCase() === 'pembongkaran' ? 'pembongkaran' : 'pemasangan';
         return route("petugas.jadwal.show", {
@@ -134,21 +129,21 @@ export default function Dashboard({ auth, stats, daftarJadwal }) {
                         colorClass="bg-gray-500"
                     />
                     <StatCard 
-                        title="Menunggu Penugasan" 
+                        title="Menunggu" 
                         value={stats.menunggu} 
                         icon={<Clock />} 
-                        colorClass="bg-yellow-500" 
+                        colorClass="bg-blue-500" 
                     />
                     <StatCard 
                         title="Pemasangan Hari Ini" 
                         value={stats.pemasanganHariIni} 
-                        icon={<ArrowDownCircle />} 
-                        colorClass="bg-blue-500" 
+                        icon={<ArrowUpCircle />} 
+                        colorClass="bg-purple-500" 
                     />
                     <StatCard 
                         title="Pembongkaran Hari Ini" 
                         value={stats.pembongkaranHariIni} 
-                        icon={<ArrowUpCircle />} 
+                        icon={<ArrowDownCircle />} 
                         colorClass="bg-green-500" 
                     />
                 </div>
