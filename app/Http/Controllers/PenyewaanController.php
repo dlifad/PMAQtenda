@@ -321,7 +321,8 @@ class PenyewaanController extends Controller
         } else {
             return redirect()->route('penyewaan.check.form')
                 ->with('penyewaan_check_error', 'Data penyewaan dengan ID tersebut tidak ditemukan.')
-                ->with('searched_penyewaan_id', $customId)->withInput();
+                ->with('searched_penyewaan_id', $customId)
+                ->withInput();
         }
     }
 

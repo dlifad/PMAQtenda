@@ -19,9 +19,8 @@ import {
 
 export default function LupaIdForm({ auth }) {
     const { props } = usePage();
-    const foundPenyewaanIds = props.flash?.found_penyewaan_ids;
-    const searchError =
-        props.errors?.nomor_telepon_lupa || props.flash?.lupa_id_error;
+    const foundPenyewaanIds = props.foundPenyewaanIds;
+    const searchError = props.errors?.nomor_telepon_lupa || props.searchError;
     const oldInput = props.flash?.oldInput || {};
 
     const { data, setData, post, processing, errors, clearErrors } = useForm({

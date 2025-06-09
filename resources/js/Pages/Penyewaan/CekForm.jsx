@@ -1,12 +1,12 @@
-import React from "react";
-import { Head, Link, useForm, usePage } from "@inertiajs/react";
-import Navbar from "@/Components/Navbar";
-import Footer from "@/Components/Footer";
-import InputLabel from "@/Components/InputLabel";
-import TextInput from "@/Components/TextInput";
-import Button from "@/Components/Button";
-import InputError from "@/Components/InputError";
-import { Search, AlertCircle } from "lucide-react";
+import React from 'react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import Navbar from '@/Components/Navbar';
+import Footer from '@/Components/Footer';
+import InputLabel from '@/Components/InputLabel';
+import TextInput from '@/Components/TextInput';
+import Button from '@/Components/Button';
+import InputError from '@/Components/InputError';
+
 
 export default function CekForm({ auth }) {
     const { props } = usePage();
