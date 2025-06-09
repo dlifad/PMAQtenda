@@ -143,20 +143,21 @@ class DashboardController extends Controller
 
     public function updateStatus(Request $request, $id_jadwal)
     {
-        $request->validate(['status' => 'required|string|in:terpasang,terbongkar']);
+        $request->validate([
+            'status' => 'required|string|in:' . Jadwal::STATUS_TERPASANG . ',' . Jadwal::STATUS_TERBONGKAR,
+        ]);
 
-        $jadwal = Jadwal::findOrFail($id_jadwal);
+        try {
+            $jadwal = Jadwal::findOrFail($id_jadwal);
+            $jadwal->status = $request->status;
 
-        if ($jadwal->status === 'terjadwal' && $request->status === 'terpasang') {
-            $jadwal->status = 'terpasang';
-        } elseif ($jadwal->status === 'terpasang' && $request->status === 'terbongkar') {
-            $jadwal->status = 'terbongkar';
-        } else {
-            return redirect()->back()->with('error', 'Perubahan status tidak diizinkan.');
+            // Metode ini akan memicu event 'updating' dan 'updated'
+            $jadwal->save();
+
+            return redirect()->back()->with('success', 'Status jadwal berhasil diperbarui.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-
-        $jadwal->save();
-        return redirect()->back()->with('success', 'Status jadwal berhasil diperbarui.');
     }
 
     public function show($id_jadwal, Request $request)

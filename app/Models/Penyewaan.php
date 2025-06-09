@@ -61,7 +61,7 @@ class Penyewaan extends Model
         'durasi_penyewaan',
         'jumlah_tenda',
         'biaya',
-        'status', // Pastikan 'status' ada di sini
+        'status',
         'catatan',
     ];
 
