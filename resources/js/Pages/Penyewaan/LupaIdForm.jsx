@@ -217,7 +217,6 @@ export default function LupaIdForm({ auth }) {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
                                 )}
 
                             {foundPenyewaanIds &&
