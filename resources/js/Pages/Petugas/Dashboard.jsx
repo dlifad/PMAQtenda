@@ -37,6 +37,15 @@ export default function Dashboard({ auth, stats, daftarJadwal }) {
         }
     };
 
+    const getDetailUrl = (jadwal) => {
+        const jenisParam = jadwal.jenis_jadwal.toLowerCase() === 'pembongkaran' ? 'pembongkaran' : 'pemasangan';
+        return route("petugas.jadwal.show", {
+            id_jadwal: jadwal.id_jadwal,
+            jenis: jenisParam
+        });
+    };
+
+
     const handleOpenModal = (jadwal) => {
         setSelectedJadwal(jadwal);
         setSelectedStatus(jadwal.status);
