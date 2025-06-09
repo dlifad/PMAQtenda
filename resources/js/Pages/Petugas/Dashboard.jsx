@@ -12,12 +12,6 @@ import Button from "@/Components/Button";
 import Pagination from "@/Components/Pagination";
 import { LogOut } from "lucide-react";
 
-/**
- * Komponen Dashboard untuk Petugas
- * Lokasi file: resources/js/Pages/Petugas/Dashboard.jsx
- */
-
-// Komponen untuk Card Statistik
 const StatCard = ({ title, value, icon, colorClass }) => (
     <div className="bg-white p-5 rounded-lg shadow flex items-center space-x-4">
         <div className={`p-3 rounded-full ${colorClass}`}>
@@ -85,21 +79,13 @@ export default function Dashboard({ auth, stats, daftarJadwal }) {
         setShowModal(false);
     };
 
-    /**
-     * Fungsi untuk mengubah pilihan status
-     */
     const handleStatusChange = (status) => {
         setSelectedStatus(status);
     };
 
-    /**
-     * Fungsi untuk mengupdate status jadwal
-     * Menggunakan id_jadwal yang sudah diperbaiki
-     */
     const handleStatusUpdate = () => {
         if (!selectedJadwal || !selectedStatus) return;
 
-        // Route menuju updateStatus dengan parameter id_jadwal
         router.patch(
             route("petugas.jadwal.updateStatus", selectedJadwal.id_jadwal),
             {
@@ -112,9 +98,6 @@ export default function Dashboard({ auth, stats, daftarJadwal }) {
         );
     };
 
-    /**
-     * Fungsi untuk membatalkan perubahan
-     */
     const handleCancel = () => {
         handleCloseModal();
     };
