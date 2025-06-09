@@ -65,21 +65,13 @@ export default function Dashboard({ auth, stats, daftarJadwal }) {
         setShowModal(false);
     };
 
-    /**
-     * Fungsi untuk mengubah pilihan status
-     */
     const handleStatusChange = (status) => {
         setSelectedStatus(status);
     };
 
-    /**
-     * Fungsi untuk mengupdate status jadwal
-     * Menggunakan id_jadwal yang sudah diperbaiki
-     */
     const handleStatusUpdate = () => {
         if (!selectedJadwal || !selectedStatus) return;
 
-        // Route menuju updateStatus dengan parameter id_jadwal
         router.patch(
             route("petugas.jadwal.updateStatus", selectedJadwal.id_jadwal),
             {
@@ -92,9 +84,6 @@ export default function Dashboard({ auth, stats, daftarJadwal }) {
         );
     };
 
-    /**
-     * Fungsi untuk membatalkan perubahan
-     */
     const handleCancel = () => {
         handleCloseModal();
     };
@@ -145,18 +134,18 @@ export default function Dashboard({ auth, stats, daftarJadwal }) {
                         title="Menunggu Penugasan" 
                         value={stats.menunggu} 
                         icon={<Clock />} 
-                        colorClass="bg-yellow-500" 
+                        colorClass="bg-blue-500" 
                     />
                     <StatCard 
                         title="Pemasangan Hari Ini" 
                         value={stats.pemasanganHariIni} 
-                        icon={<ArrowDownCircle />} 
-                        colorClass="bg-blue-500" 
+                        icon={<ArrowUpCircle />} 
+                        colorClass="bg-purple-500" 
                     />
                     <StatCard 
                         title="Pembongkaran Hari Ini" 
                         value={stats.pembongkaranHariIni} 
-                        icon={<ArrowUpCircle />} 
+                        icon={<ArrowDownCircle />} 
                         colorClass="bg-green-500" 
                     />
                 </div>
@@ -242,7 +231,7 @@ export default function Dashboard({ auth, stats, daftarJadwal }) {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                                                 <Button
-                                                    variant="success"
+                                                    variant="secondary"
                                                     size="small"
                                                     onClick={() =>
                                                         handleOpenModal(jadwal)
