@@ -13,7 +13,7 @@ class TendaController extends Controller
 {
     public function index()
     {
-        $tendas = Tenda::latest()->paginate(10)->through(fn ($tenda) => [
+        $tendas = Tenda::orderBy('id_tenda', 'asc')->paginate(10)->through(fn ($tenda) => [
             'id_tenda' => $tenda->id_tenda,
             'nama_tenda' => $tenda->nama_tenda,
             'harga' => 'Rp' . number_format($tenda->harga, 0, ',', '.'),

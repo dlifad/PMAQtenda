@@ -3,9 +3,23 @@ import PengelolaLayout from '@/Layouts/PengelolaLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import Pagination from '@/Components/Pagination';
+import Button  from '@/Components/Button';
+import Swal from 'sweetalert2';
+
 export default function Index({ auth, tendas, flash }) {
-    const handleDelete = (tenda) => {
-        if (confirm(`Apakah Anda yakin ingin menghapus tenda "${tenda.nama_tenda}"?`)) {
+    const handleDelete = async (tenda) => {
+        const result = await Swal.fire({
+            title: 'Yakin ingin menghapus?',
+            text: `Tenda "${tenda.nama_tenda}" akan dihapus permanen.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e3342f',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya',
+            cancelButtonText: 'Tidak',
+        });
+
+        if (result.isConfirmed) {
             router.delete(route('pengelola.tenda.destroy', tenda.id_tenda));
         }
     };
@@ -26,10 +40,12 @@ export default function Index({ auth, tendas, flash }) {
             <div className="">
                 <div className="flex justify-between items-center mb-6">
                     <Link href={route('pengelola.tenda.create')}>
-                        <button className="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                        <Button
+                            variant='secondary'
+                        >
                             <Plus className="w-4 h-4 mr-2" />
                             Tambah Tenda
-                        </button>
+                        </Button>
                     </Link>
                 </div>
 
