@@ -132,7 +132,7 @@ export default function PengelolaLayout({ user, header, children }) {
                             <span className="text-sm font-medium text-gray-700 mr-2 hidden sm:block">
                                 Pengelola
                             </span>
-                            <div className="p-1 bg-gray-200 rounded-full">
+                            <div className="p-1">
                                 <UserCircle className="w-8 h-8 text-gray-600" />
                             </div>
                         </div>
