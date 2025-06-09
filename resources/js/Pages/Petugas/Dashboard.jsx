@@ -118,6 +118,7 @@ export default function Dashboard({ auth, stats, daftarJadwal }) {
     const handleCancel = () => {
         handleCloseModal();
     };
+    console.log("DAFTAR JADWAL:", daftarJadwal.data);
 
     return (
         <PetugasLayout user={auth.user}>

@@ -50,14 +50,14 @@ export default function Show({ auth, jadwal }) {
 
     // Fungsi untuk membuka modal
     const handleOpenModal = () => {
-        setSelectedStatus(jadwal.status); // Reset ke status saat ini
+        setSelectedStatus(jadwal.status);
         setShowModal(true);
     };
 
     // Fungsi untuk menutup modal
     const handleCloseModal = () => {
         setShowModal(false);
-        setSelectedStatus(jadwal.status); // Reset ke status saat ini
+        setSelectedStatus(jadwal.status);
     };
 
     // Fungsi untuk menyimpan perubahan status

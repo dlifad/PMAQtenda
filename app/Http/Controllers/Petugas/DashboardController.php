@@ -42,8 +42,14 @@ class DashboardController extends Controller
         $daftarTugas = new Collection();
 
         foreach ($jadwals as $jadwal) {
+            $now = Carbon::now();
+
+            $waktuPemasangan = Carbon::parse($jadwal->tanggal_pemasangan . ' ' . $jadwal->waktu_pemasangan);
+            $waktuPembongkaran = Carbon::parse($jadwal->tanggal_pembongkaran . ' ' . $jadwal->waktu_pembongkaran);
+
             // Tugas Pemasangan
             if ($jadwal->status === 'terjadwal') {
+
                 $daftarTugas->push([
                     'id_tugas' => $jadwal->id_jadwal . '-pemasangan',
                     'id_jadwal' => $jadwal->id_jadwal,
@@ -55,13 +61,11 @@ class DashboardController extends Controller
                     'tanggal_pembongkaran' => $jadwal->tanggal_pembongkaran,
                     'waktu_pembongkaran' => $jadwal->waktu_pembongkaran,
                     'jenis_jadwal' => 'Pemasangan',
-                    'status' => 'terjadwal',
-                    // Data tambahan untuk modal
+                    'status' => $jadwal->status,
                     'nama_tenda' => $jadwal->penyewaan->tenda->nama_tenda ?? 'Tidak tersedia',
                     'jumlah_tenda' => $jadwal->penyewaan->jumlah_tenda ?? 0,
                 ]);
 
-                // Tugas Pembongkaran juga dimunculkan meski belum terpasang
                 $daftarTugas->push([
                     'id_tugas' => $jadwal->id_jadwal . '-pembongkaran',
                     'id_jadwal' => $jadwal->id_jadwal,
@@ -73,15 +77,14 @@ class DashboardController extends Controller
                     'tanggal_pemasangan' => $jadwal->tanggal_pemasangan,
                     'waktu_pemasangan' => $jadwal->waktu_pemasangan,
                     'jenis_jadwal' => 'Pembongkaran',
-                    'status' => 'terjadwal',
-                    // Data tambahan untuk modal
+                    'status' => $jadwal->status,
                     'nama_tenda' => $jadwal->penyewaan->tenda->nama_tenda ?? 'Tidak tersedia',
                     'jumlah_tenda' => $jadwal->penyewaan->jumlah_tenda ?? 0,
                 ]);
             }
 
-            // Tugas Pembongkaran jika status sudah terpasang
             if ($jadwal->status === 'terpasang') {
+
                 $daftarTugas->push([
                     'id_tugas' => $jadwal->id_jadwal . '-pembongkaran',
                     'id_jadwal' => $jadwal->id_jadwal,
@@ -93,13 +96,13 @@ class DashboardController extends Controller
                     'tanggal_pemasangan' => $jadwal->tanggal_pemasangan,
                     'waktu_pemasangan' => $jadwal->waktu_pemasangan,
                     'jenis_jadwal' => 'Pembongkaran',
-                    'status' => 'terpasang',
-                    // Data tambahan untuk modal
+                    'status' => $jadwal->status,
                     'nama_tenda' => $jadwal->penyewaan->tenda->nama_tenda ?? 'Tidak tersedia',
                     'jumlah_tenda' => $jadwal->penyewaan->jumlah_tenda ?? 0,
                 ]);
             }
         }
+
 
         // Urutkan semua tugas berdasarkan tanggal dan waktu
         $daftarTugas = $daftarTugas->sortBy(function ($tugas) {
