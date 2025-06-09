@@ -6,7 +6,6 @@ import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import Button from '@/Components/Button';
 import InputError from '@/Components/InputError';
-import { Search, AlertCircle } from 'lucide-react';
 
 export default function CekForm({ auth }) {
     const { props } = usePage();
