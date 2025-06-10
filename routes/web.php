@@ -12,6 +12,7 @@ use App\Http\Controllers\Pengelola\TendaController as PengelolaTendaController;
 use App\Http\Controllers\Pengelola\PenyewaanController as PengelolaPenyewaanController;
 use App\Http\Controllers\Pengelola\PenjadwalanController as PengelolaPenjadwalanController;
 use App\Http\Controllers\Petugas\DashboardController as PetugasDashboardController;
+use App\Http\Controllers\FaqController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,6 +42,7 @@ Route::get('/cek-penyewaan', [PenyewaanController::class, 'showCheckForm'])->nam
 Route::post('/cek-penyewaan/proses', [PenyewaanController::class, 'processCheckStatus'])->name('penyewaan.check.process');
 Route::get('/penyewaan/detail/{id_penyewaan}', [PenyewaanController::class, 'showDetailPenyewaan'])->name('penyewaan.detail');
 
+Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
 
 // RUTE UNTUK LUPA ID PENYEWAAN
 Route::get('/lupa-id-penyewaan', [LupaIdController::class, 'showForm'])->name('penyewaan.lupa_id.form');
