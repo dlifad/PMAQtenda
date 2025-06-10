@@ -99,7 +99,6 @@ export default function Create({
     const submitPenyewaan = (e) => {
         e.preventDefault();
         router.post(route("penyewaan.showConfirmation"), data, {
-            preserveScroll: true,
             onError: (errors) => {
                 console.error("Error saat validasi:", errors);
             },
