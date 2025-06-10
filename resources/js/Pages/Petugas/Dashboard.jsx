@@ -145,7 +145,7 @@ export default function Dashboard({ auth, stats, daftarJadwal }) {
                         colorClass="bg-gray-500"
                     />
                     <StatCard 
-                        title="Menunggu Penugasan" 
+                        title="Menunggu" 
                         value={stats.menunggu} 
                         icon={<Clock />} 
                         colorClass="bg-blue-500" 

@@ -18,7 +18,7 @@ class DashboardController extends Controller
     {
         $today = Carbon::today()->toDateString();
         $totalJadwal = Jadwal::count();
-        $menungguCount = Jadwal::where('status', '!=', 'terbongkar')->count();
+        $menungguCount = Jadwal::where('status', 'terjadwal')->count();
         $pemasanganHariIni = Jadwal::where('status', 'terjadwal')
             ->whereDate('tanggal_pemasangan', $today)->count();
         $pembongkaranHariIni = Jadwal::where('status', 'terpasang')
