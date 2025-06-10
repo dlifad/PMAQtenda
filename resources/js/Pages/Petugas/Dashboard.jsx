@@ -11,8 +11,9 @@ import Modal from "@/Components/Modal";
 import Button from "@/Components/Button";
 import Pagination from "@/Components/Pagination";
 import { LogOut } from "lucide-react";
+import Swal from "sweetalert2";
 
-// Komponen untuk Card Statistik
+
 const StatCard = ({ title, value, icon, colorClass }) => (
     <div className="bg-white p-5 rounded-lg shadow flex items-center space-x-4">
         <div className={`p-3 rounded-full ${colorClass}`}>
@@ -87,7 +88,22 @@ export default function Dashboard({ auth, stats, daftarJadwal }) {
     const handleCancel = () => {
         handleCloseModal();
     };
-    console.log("DAFTAR JADWAL:", daftarJadwal.data);
+    
+    const handleLogout = () => {
+        Swal.fire({
+            title: 'Yakin ingin logout?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#DC3545',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya',
+            cancelButtonText: 'Tidak',
+        }).then(result => {
+            if (result.isConfirmed) {
+                router.post(route('logout'));
+            }
+        });
+    };
 
     return (
         <PetugasLayout user={auth.user}>
@@ -111,15 +127,13 @@ export default function Dashboard({ auth, stats, daftarJadwal }) {
                 </div>
             )}
             <div className="flex justify-end mb-4">
-                <Link
-                    href={route("logout")}
-                    method="post"
-                    as="button"
+                <button
+                    onClick={handleLogout}
                     className="inline-flex items-center px-3 py-2 border border-red-300 text-sm leading-4 font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition"
                 >
                     <LogOut className="w-4 h-4 mr-1" />
                     Log Out
-                </Link>
+                </button>
             </div>
             <div className="space-y-8">
                 {/* Bagian Card Statistik */}
