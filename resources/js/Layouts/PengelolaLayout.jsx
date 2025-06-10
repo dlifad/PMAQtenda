@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, Head } from "@inertiajs/react";
+import { Link, Head, router } from "@inertiajs/react";
 import {
     LayoutDashboard,
     File,
@@ -10,6 +10,7 @@ import {
     Menu,
     X,
 } from "lucide-react";
+import Swal from 'sweetalert2';
 
 const NavLink = ({ href, active, children, icon }) => (
     <Link
@@ -29,19 +30,36 @@ const NavLink = ({ href, active, children, icon }) => (
     </Link>
 );
 
-const LogoutLink = ({ href, children, icon, method = "post", as = "button" }) => (
-    <Link
-        href={href}
-        method={method}
-        as={as}
-        className="flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors duration-150 text-gray-700 hover:bg-red-100 hover:text-red-700 group w-full"
-    >
-        {React.cloneElement(icon, {
-            className: "w-5 h-5 mr-3 flex-shrink-0 text-gray-500 group-hover:text-red-600",
-        })}
-        {children}
-    </Link>
-);
+const LogoutLink = ({ href, children, icon }) => {
+    const handleLogout = (e) => {
+        e.preventDefault();
+        Swal.fire({
+            title: 'Yakin ingin logout?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#DC3545',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya',
+            cancelButtonText: 'Tidak'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.post(href);
+            }
+        });
+    };
+
+    return (
+        <button
+            onClick={handleLogout}
+            className="flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors duration-150 text-gray-700 hover:bg-red-100 hover:text-red-700 group w-full"
+        >
+            {React.cloneElement(icon, {
+                className: "w-5 h-5 mr-3 flex-shrink-0 text-gray-500 group-hover:text-red-600",
+            })}
+            {children}
+        </button>
+    );
+};
 
 export default function PengelolaLayout({ user, header, children }) {
     const [sidebarOpen, setSidebarOpen] = useState(() => {
