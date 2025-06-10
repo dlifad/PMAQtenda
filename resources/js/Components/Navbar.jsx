@@ -48,7 +48,7 @@ export default function Navbar() {
                                     <Link href="/" className="block px-4 py-2 text-dark-gray hover:text-dark-gray-hover">Cek Penyewaan</Link>
                                 </div>
                                 <Link href={route("login")} className="block px-4 py-2 text-dark-gray hover:text-dark-gray-hover">Login</Link>
-                                <Link href="/" className="block px-4 py-2 text-dark-gray hover:text-dark-gray-hover">Hubungi Kami</Link>
+                                <Link href="#footer" className="block px-4 py-2 text-dark-gray hover:text-dark-gray-hover">Hubungi Kami</Link>
                                 <Link href="/" className="block px-4 py-2 text-dark-gray hover:text-dark-gray-hover">FAQ</Link>
                             </div>
                         )}
