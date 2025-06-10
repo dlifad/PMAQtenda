@@ -45,7 +45,7 @@ export default function Welcome({ tendas }) {
                 </div>
                 <div className="pt-20">
                     {/* Hero Section */}
-                    <section className="relative overflow-hidden min-h-screen pt-12 md:pt-20 pb-40 md:pb-60">
+                    <section className="relative overflow-hidden min-h-screen pt-12 md:px-20 md:pt-12 pb-40 md:pb-60">
                         <div
                             className="absolute inset-0 -z-10 bg-[length:100%_100%] bg-no-repeat"
                             style={{
