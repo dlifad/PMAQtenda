@@ -5,6 +5,7 @@ import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import InputError from '@/Components/InputError';
 import TextArea from '@/Components/TextArea';
+import Button from '@/Components/Button'; 
 
 export default function Edit({ auth, tenda }) {
     const { data, setData, post, processing, errors, progress } = useForm({
@@ -126,12 +127,12 @@ export default function Edit({ auth, tenda }) {
                     </div>
                     
                     <div className="flex items-center justify-end space-x-4 mt-6">
-                        <Link href={route('pengelola.tenda.index')} className="text-gray-600 hover:underline">
+                        <Button as={Link} href={route('pengelola.tenda.index')} variant="neutral">
                             Batal
-                        </Link>
-                        <button type="submit" disabled={processing} className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50">
-                            {processing ? 'Memperbarui...' : 'Update Tenda'}
-                        </button>
+                        </Button>
+                        <Button type="submit" variant="success" disabled={processing}>
+                            {processing ? 'Memperbarui...' : 'Update'}
+                        </Button>
                     </div>
                 </form>
             </div>

@@ -97,7 +97,10 @@ class TendaController extends Controller
             }
 
             $data['gambar'] = $this->storeGambar($request->file('gambar'));
+        } else {
+            $data['gambar'] = $tenda->gambar;
         }
+
 
         $data['isi_paket'] = $this->parseIsiPaket($data['isi_paket'] ?? null);
 
