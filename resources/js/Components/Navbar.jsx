@@ -42,7 +42,7 @@ export default function Navbar() {
                         </button>
 
                         {isMenuOpen && (
-                            <div className="absolute top-full right-0 w-48 bg-white rounded-md shadow-lg py-2 z-50 mt-2">
+                            <div className="absolute top-full right-0 w-48 bg-white rounded-md shadow-lg py-2 z-50 mt-5">
                                 <div className="md:hidden">
                                     <Link href={route("welcome")} className="block px-4 py-2 text-dark-gray hover:text-dark-gray-hover">Beranda</Link>
                                     <Link href={route("penyewaan.check.form")} className="block px-4 py-2 text-sm text-dark-gray hover:bg-gray-100" onClick={() => setIsMenuOpen(false)}>Cek Penyewaan</Link>
