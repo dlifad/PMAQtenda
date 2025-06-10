@@ -18,7 +18,7 @@ class PenyewaanController extends Controller
     {
         $tendas = Tenda::orderBy('nama_tenda')->get(['id_tenda', 'nama_tenda']);
         $statuses = collect(config('enums.penyewaan_status'));
-        $query = Penyewaan::with(['pelanggan', 'tenda'])->latest('tanggal_penyewaan');
+        $query = Penyewaan::with(['pelanggan', 'tenda'])->orderByDesc('id_penyewaan');
 
         if ($request->filled('search')) {
             $query->whereHas('pelanggan', function ($q) use ($request) {
