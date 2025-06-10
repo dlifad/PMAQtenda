@@ -49,6 +49,7 @@ export default function Show({ auth, detailPenjadwalan, flash }) {
         setShowEditModal(false);
         reset();
     };
+    console.log("Detail Penjadwalan:", detailPenjadwalan);
 
     return (
         <PengelolaLayout
@@ -148,7 +149,13 @@ export default function Show({ auth, detailPenjadwalan, flash }) {
                             <div className="mb-4 text-sm text-gray-600 space-y-1">
                                 <p><strong>Penyewa:</strong> {detailPenjadwalan.nama_pelanggan}</p>
                                 <p><strong>Tenda:</strong> {detailPenjadwalan.detail_tenda.nama_tenda} - {detailPenjadwalan.detail_tenda.jumlah} unit</p>
-                                <p><strong>Tanggal sewa:</strong> {detailPenjadwalan.tanggal_sewa}</p>
+                                <p>
+                                    <strong>Tanggal sewa:</strong> {detailPenjadwalan.tanggal_sewa}
+                                    {detailPenjadwalan.tanggal_berakhir && ` - ${detailPenjadwalan.tanggal_berakhir}`}
+                                </p>
+
+
+
                             </div>
 
                             {/* Pemasangan */}
