@@ -25,7 +25,7 @@ class DashboardController extends Controller
         $belumTerjadwalCount = Penyewaan::where('status', 'Menunggu')->count();
 
         $penyewaanTerbaru = Penyewaan::with(['pelanggan', 'tenda'])
-            ->orderBy('tanggal_penyewaan', 'desc')
+            ->orderBy('id_penyewaan', 'desc')
             ->take(5)
             ->get()
             ->map(function ($item) {
