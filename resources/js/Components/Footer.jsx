@@ -5,11 +5,11 @@ export default function Footer() {
         <footer id="footer" className="bg-nav-footer text-dark-grey py-8 mt-12">
             <div className="container mx-auto px-4">
                 <div className="flex flex-col md:flex-row justify-between">
-                    <div className="mb-6 md:mb-0">
+                    <div className="ml-8 mb-6 md:mb-0">
                         <img
                             src="/images/logo.png"
                             alt="PMAQ Tenda Logo"
-                            className="h-24 mb-4"
+                            className="h-16  mb-4"
                         />
                         <p className="">
                             Paguyuban Mushola <br />
@@ -31,7 +31,7 @@ export default function Footer() {
                             />
                         </div>
                     </div>
-                    <div>
+                    <div className="mr-8">
                         <h3 className="font-bold mb-4">Kontak:</h3>
                         <p className="mb-2">
                             0812-3456-7890
