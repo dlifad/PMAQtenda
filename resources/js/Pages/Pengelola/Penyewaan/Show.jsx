@@ -1,25 +1,41 @@
 import React, { useState } from "react";
-import { Head, Link, useForm, usePage, router } from "@inertiajs/react";
+import { Head, Link, useForm, router } from "@inertiajs/react";
 import PengelolaLayout from "@/Layouts/PengelolaLayout";
 import Button from "@/Components/Button";
-import { ArrowLeft, Printer, Ban, CalendarPlus, X } from "lucide-react";
-import Modal from "@/Components/Modal";
+import { ArrowLeft, Printer, Ban, CalendarPlus, X, Send } from "lucide-react";
 import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
 import InputError from "@/Components/InputError";
+import TextareaInput from "@/Components/TextArea";
+
+// Komponen Modal diletakkan di sini karena Anda belum memilikinya sebagai file terpisah
+const Modal = ({ children, show, onClose }) => {
+    if (!show) {
+        return null;
+    }
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={onClose}>
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+                {children}
+            </div>
+        </div>
+    );
+};
 
 export default function Show({ auth, penyewaanDetail }) {
-    const { props } = usePage();
     const [schedulingModalOpen, setSchedulingModalOpen] = useState(false);
+    const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
 
     const { data, setData, post, patch, processing, errors, reset } = useForm({
         status: "",
+        alasan_penolakan: "",
         tanggal_pemasangan: penyewaanDetail.jadwal?.tanggal_pemasangan || "",
         waktu_pemasangan: penyewaanDetail.jadwal?.waktu_pemasangan || "",
         tanggal_pembongkaran: penyewaanDetail.jadwal?.tanggal_pembongkaran || "",
         waktu_pembongkaran: penyewaanDetail.jadwal?.waktu_pembongkaran || "",
     });
 
+    // --- Helper Functions ---
     const getStatusTextColor = (status) => {
         const s = status?.toLowerCase();
         if (s === "menunggu") return "text-status-menunggu";
@@ -31,111 +47,92 @@ export default function Show({ auth, penyewaanDetail }) {
         return "text-gray-700";
     };
 
-    // Fungsi untuk mengecek apakah button tolak/batal harus disabled
     const isCancelButtonDisabled = () => {
         const status = penyewaanDetail.status?.toLowerCase();
         return processing || (status !== "menunggu" && status !== "terjadwal");
     };
 
-    // Fungsi untuk mengecek apakah button jadwalkan harus disabled
     const isScheduleButtonDisabled = () => {
         const status = penyewaanDetail.status?.toLowerCase();
         return processing || status !== "menunggu";
     };
 
-    // Fungsi untuk mendapatkan teks button jadwalkan
-    const getScheduleButtonText = () => {
-        return "Jadwalkan";
-    };
-
-    // Fungsi untuk mendapatkan teks button tolak/batal
     const getCancelButtonText = () => {
         const status = penyewaanDetail.status?.toLowerCase();
-        if (status === "menunggu") {
-            return "Tolak";
-        } else if (status === "terjadwal") {
-            return "Batal";
-        }
+        if (status === "menunggu") return "Tolak";
+        if (status === "terjadwal") return "Batal";
         return "Batal";
     };
 
-    // Fungsi untuk mendapatkan status yang akan dikirim ke server
-    const getCancelStatus = () => {
-        const status = penyewaanDetail.status?.toLowerCase();
-        if (status === "menunggu") {
-            return "Ditolak";
-        } else if (status === "terjadwal") {
-            return "Dibatalkan";
-        }
-        return "Dibatalkan";
+    // Handler untuk Modal Penolakan
+    const handleOpenRejectionModal = () => {
+        reset('alasan_penolakan');
+        setRejectionModalOpen(true);
     };
 
-    // Fungsi untuk mendapatkan pesan konfirmasi
-    const getCancelConfirmationMessage = () => {
-        const status = penyewaanDetail.status?.toLowerCase();
-        if (status === "menunggu") {
-            return "Apakah Anda yakin ingin menolak penyewaan ini?";
-        } else if (status === "terjadwal") {
-            return "Apakah Anda yakin ingin membatalkan penyewaan ini?";
-        }
-        return "Apakah Anda yakin ingin membatalkan penyewaan ini?";
+    const handleCloseRejectionModal = () => {
+        setRejectionModalOpen(false);
+        reset('alasan_penolakan');
     };
 
-    const handleCancel = () => {
-        if (confirm(getCancelConfirmationMessage())) {
-            router.patch(
-                route(
-                    "pengelola.penyewaan.updateStatus",
-                    penyewaanDetail.id_penyewaan
-                ),
-                {
-                    status: getCancelStatus(),
-                },
-                {
-                    preserveScroll: true,
-                    onSuccess: () => {
-                        console.log(
-                            `Status berhasil diubah menjadi ${getCancelStatus()}`
-                        );
-                    },
-                    onError: (errors) => {
-                        console.error("Gagal mengubah status:", errors);
-                    },
-                }
-            );
-        }
-    };
-
-    // Fungsi untuk membuka modal jadwalkan
-    const handleOpenModal = () => {
+    // Handler untuk Modal Penjadwalan
+    const handleOpenSchedulingModal = () => {
         setSchedulingModalOpen(true);
     };
 
-    // Fungsi untuk menutup modal jadwalkan
-    const handleCloseModal = () => {
+    const handleCloseSchedulingModal = () => {
         setSchedulingModalOpen(false);
         reset();
     };
 
-    // Fungsi untuk submit jadwal
-    const handleSubmit = () => {
-        post(
-            route("pengelola.penyewaan.schedule", penyewaanDetail.id_penyewaan),
-            {
-                onSuccess: () => {
-                    reset();
-                    setSchedulingModalOpen(false);
-                },
-                preserveScroll: true,
+    // Handler untuk tombol utama "Tolak" atau "Batal"
+    const handleCancelClick = () => {
+        const status = penyewaanDetail.status?.toLowerCase();
+        if (status === "menunggu") {
+            handleOpenRejectionModal();
+        } else if (status === "terjadwal") {
+            if (confirm("Apakah Anda yakin ingin membatalkan penyewaan ini?")) {
+                router.post(route("pengelola.penyewaan.updateStatus", penyewaanDetail.id_penyewaan), {
+                    _method: 'patch',
+                    status: "Dibatalkan",
+                }, { preserveScroll: true });
             }
-        );
+        }
     };
 
+    // Handler untuk submit form penolakan
+    const handleSubmitRejection = (e) => {
+        e.preventDefault();
+        const rejectionData = {
+            status: "Ditolak",
+            alasan_penolakan: data.alasan_penolakan,
+        };
+
+        router.post(route("pengelola.penyewaan.updateStatus", penyewaanDetail.id_penyewaan), {
+            _method: 'patch',
+            ...rejectionData
+        }, {
+            onSuccess: () => handleCloseRejectionModal(),
+            preserveScroll: true,
+        });
+    };
+    
+    // Handler untuk submit form penjadwalan
+    const handleScheduleSubmit = (e) => {
+        e.preventDefault();
+        post(route("pengelola.penyewaan.schedule", penyewaanDetail.id_penyewaan), {
+            onSuccess: () => {
+                reset();
+                setSchedulingModalOpen(false);
+            },
+            preserveScroll: true,
+        });
+    };
+
+    // Handler untuk tombol cetak
     const handlePrintInvoice = () => {
         window.open(
-            route("penyewaan.invoice.download", {
-                id_penyewaan: penyewaanDetail.id_penyewaan,
-            }),
+            route("penyewaan.invoice.download", { id_penyewaan: penyewaanDetail.id_penyewaan }),
             "_blank"
         );
     };
@@ -153,18 +150,14 @@ export default function Show({ auth, penyewaanDetail }) {
                     >
                         Penyewaan
                     </Link>
-                    <span className="text-green-600 hover:text-green-800">
-                        {" / "}
-                    </span>
+                    <span className="text-green-600 hover:text-green-800"> / </span>
                     <span className="text-green-600 hover:text-green-800">
                         {pelanggan.nama}
                     </span>
                 </h2>
             }
         >
-            <Head
-                title={`Detail Penyewaan - ${penyewaanDetail.id_penyewaan}`}
-            />
+            <Head title={`Detail Penyewaan - ${penyewaanDetail.id_penyewaan}`} />
 
             <div className="bg-white rounded-lg shadow-lg p-6 md:p-8 space-y-8">
                 <h3 className="font-bold">Detail Penyewaan</h3>
@@ -177,16 +170,12 @@ export default function Show({ auth, penyewaanDetail }) {
                             {penyewaanDetail.id_penyewaan}
                         </p>
 
-                        <p className="text-xs text-gray-500 mt-4">
-                            Tanggal Sewa
-                        </p>
+                        <p className="text-xs text-gray-500 mt-4">Tanggal Sewa</p>
                         <p className="font-semibold text-gray-800">
                             {penyewaanDetail.tanggal_sewa_formatted}
                         </p>
 
-                        <p className="text-xs text-gray-500 mt-4">
-                            Durasi Sewa
-                        </p>
+                        <p className="text-xs text-gray-500 mt-4">Durasi Sewa</p>
                         <p className="font-semibold text-gray-800">
                             {penyewaanDetail.durasi_sewa}
                         </p>
@@ -197,9 +186,7 @@ export default function Show({ auth, penyewaanDetail }) {
                             "{penyewaanDetail.catatan || "Tidak ada catatan."}"
                         </p>
 
-                        <p className="text-xs text-gray-500 mt-4">
-                            Status Penyewaan
-                        </p>
+                        <p className="text-xs text-gray-500 mt-4">Status Penyewaan</p>
                         <p>
                             <span
                                 className={`inline-flex text-sm leading-5 font-bold rounded-full ${getStatusTextColor(
@@ -210,9 +197,7 @@ export default function Show({ auth, penyewaanDetail }) {
                             </span>
                         </p>
 
-                        <p className="text-xs text-gray-500 mt-4">
-                            Total Biaya
-                        </p>
+                        <p className="text-xs text-gray-500 mt-4">Total Biaya</p>
                         <p className="text-2xl font-bold text-green-700">
                             {penyewaanDetail.total_biaya}
                         </p>
@@ -250,40 +235,20 @@ export default function Show({ auth, penyewaanDetail }) {
                         <table className="min-w-full">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Kode Tenda
-                                    </th>
-                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Tenda
-                                    </th>
-                                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                                        Harga
-                                    </th>
-                                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                                        Jumlah
-                                    </th>
-                                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                                        Subtotal
-                                    </th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Kode Tenda</th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tenda</th>
+                                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Harga</th>
+                                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Jumlah</th>
+                                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white">
                                 <tr className="border-b">
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                                        {item_tenda.kode_tenda}
-                                    </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {item_tenda.nama_tenda}
-                                    </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">
-                                        {item_tenda.harga}
-                                    </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">
-                                        {item_tenda.jumlah}
-                                    </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
-                                        {item_tenda.subtotal}
-                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{item_tenda.kode_tenda}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{item_tenda.nama_tenda}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">{item_tenda.harga}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">{item_tenda.jumlah}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">{item_tenda.subtotal}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -295,12 +260,8 @@ export default function Show({ auth, penyewaanDetail }) {
                     <div className="flex flex-row gap-3" id="action-buttons">
                         <Button
                             variant="danger"
-                            className={`w-36 ${
-                                isCancelButtonDisabled()
-                                    ? "opacity-50 cursor-not-allowed"
-                                    : ""
-                            }`}
-                            onClick={handleCancel}
+                            className={`w-36 ${isCancelButtonDisabled() ? "opacity-50 cursor-not-allowed" : ""}`}
+                            onClick={handleCancelClick}
                             disabled={isCancelButtonDisabled()}
                         >
                             <Ban className="w-4 h-4 mr-2" />
@@ -308,16 +269,12 @@ export default function Show({ auth, penyewaanDetail }) {
                         </Button>
                         <Button
                             variant="secondary"
-                            className={`w-36 ${
-                                isScheduleButtonDisabled()
-                                    ? "opacity-50 cursor-not-allowed"
-                                    : ""
-                            }`}
-                            onClick={handleOpenModal}
+                            className={`w-36 ${isScheduleButtonDisabled() ? "opacity-50 cursor-not-allowed" : ""}`}
+                            onClick={handleOpenSchedulingModal}
                             disabled={isScheduleButtonDisabled()}
                         >
                             <CalendarPlus className="w-4 h-4 mr-2" />
-                            {getScheduleButtonText()}
+                            Jadwalkan
                         </Button>
                     </div>
                     <Button
@@ -332,167 +289,123 @@ export default function Show({ auth, penyewaanDetail }) {
                 </div>
             </div>
 
-            {/* Modal Penjadwalan */}
-            {schedulingModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-                        <div className="mb-4">
-                            <div className="bg-green-100 text-green-800 text-center py-2 rounded-lg mb-4">
-                                <h3 className="font-semibold">Jadwalkan</h3>
-                            </div>
+            {/* Modal Penolakan */}
+            <Modal show={rejectionModalOpen} onClose={handleCloseRejectionModal}>
+                <form onSubmit={handleSubmitRejection} className="p-6">
+                    <div className="flex justify-between items-center pb-3 border-b">
+                        <h2 className="text-lg font-bold text-gray-800">Alasan Penolakan</h2>
+                        <button type="button" onClick={handleCloseRejectionModal} className="text-gray-500 hover:text-gray-800">
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
+                    <div className="mt-4">
+                        <InputLabel htmlFor="alasan_penolakan" value="Tuliskan alasan mengapa penyewaan ini ditolak" />
+                        <TextareaInput
+                            id="alasan_penolakan"
+                            value={data.alasan_penolakan}
+                            className="mt-1 block w-full h-24"
+                            isFocused={true}
+                            onChange={(e) => setData("alasan_penolakan", e.target.value)}
+                            required
+                        />
+                        <InputError message={errors.alasan_penolakan} className="mt-2" />
+                    </div>
+                    <div className="mt-6 flex gap-3">
+                        <Button type="button" variant="secondary" onClick={handleCloseRejectionModal} className="w-full" disabled={processing}>
+                            Batal
+                        </Button>
+                        <Button type="submit" variant="danger" className="w-full" disabled={processing}>
+                            <Send className="w-4 h-4 mr-2" />
+                            {processing ? "Mengirim..." : "Kirim Penolakan"}
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
 
-                            <div className="space-y-2 mb-6">
-                                <p>
-                                    <span className="font-medium">
-                                        Penyewa:
-                                    </span>{" "}
-                                    {pelanggan.nama}
-                                </p>
-                                <p>
-                                    <span className="font-medium">
-                                        Tenda:
-                                    </span>{" "}
-                                    {item_tenda.nama_tenda} - {item_tenda.jumlah} unit
-                                </p>
-                                <p>
-                                    <span className="font-medium">
-                                        Tanggal sewa:
-                                    </span>{" "}
-                                    {penyewaanDetail.tanggal_sewa_formatted} - {penyewaanDetail.tanggal_selesai_formatted}
-                                </p>
+            {/* Modal Penjadwalan */}
+            <Modal show={schedulingModalOpen} onClose={handleCloseSchedulingModal}>
+                <form onSubmit={handleScheduleSubmit} className="p-6">
+                    <div className="flex justify-between items-center mb-4 pb-3 border-b">
+                        <h3 className="text-lg font-bold text-green-800">Jadwalkan Pemasangan & Pembongkaran</h3>
+                        <button type="button" onClick={handleCloseSchedulingModal} className="text-gray-500 hover:text-gray-800">
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
+                    <div className="space-y-2 mb-6 text-sm text-gray-600">
+                        <p><span className="font-medium text-gray-800">Penyewa:</span> {pelanggan.nama}</p>
+                        <p><span className="font-medium text-gray-800">Tenda:</span> {item_tenda.nama_tenda} - {item_tenda.jumlah} unit</p>
+                        <p><span className="font-medium text-gray-800">Tanggal sewa:</span> {penyewaanDetail.tanggal_sewa_formatted} - {penyewaanDetail.tanggal_selesai_formatted}</p>
+                    </div>
+                    <div className="space-y-4">
+                        <div>
+                            <h4 className="font-semibold text-gray-800 mb-2">Jadwal Pemasangan</h4>
+                            <div className="flex gap-4">
+                                <div className="flex-1">
+                                    <InputLabel htmlFor="tanggal_pemasangan" value="Tanggal" />
+                                    <TextInput
+                                        id="tanggal_pemasangan"
+                                        type="date"
+                                        value={data.tanggal_pemasangan}
+                                        onChange={(e) => setData("tanggal_pemasangan", e.target.value)}
+                                        className="mt-1 block w-full"
+                                        required
+                                    />
+                                    <InputError message={errors.tanggal_pemasangan} className="mt-2" />
+                                </div>
+                                <div className="flex-1">
+                                    <InputLabel htmlFor="waktu_pemasangan" value="Waktu" />
+                                    <TextInput
+                                        id="waktu_pemasangan"
+                                        type="time"
+                                        value={data.waktu_pemasangan}
+                                        onChange={(e) => setData("waktu_pemasangan", e.target.value)}
+                                        className="mt-1 block w-full"
+                                        required
+                                    />
+                                    <InputError message={errors.waktu_pemasangan} className="mt-2" />
+                                </div>
                             </div>
                         </div>
-
-                        <div className="space-y-4">
-                            {/* Jadwal Pemasangan */}
-                            <div>
-                                <h4 className="font-medium mb-2">
-                                    Jadwal Pemasangan
-                                </h4>
-                                <div className="flex gap-4">
-                                    <div className="flex-1">
-                                        <label className="block text-sm text-gray-600 mb-1">
-                                            Tanggal:
-                                        </label>
-                                        <input
-                                            type="date"
-                                            value={data.tanggal_pemasangan}
-                                            onChange={(e) =>
-                                                setData(
-                                                    "tanggal_pemasangan",
-                                                    e.target.value
-                                                )
-                                            }
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            required
-                                        />
-                                        {errors.tanggal_pemasangan && (
-                                            <p className="text-red-500 text-xs mt-1">
-                                                {errors.tanggal_pemasangan}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div className="flex-1">
-                                        <label className="block text-sm text-gray-600 mb-1">
-                                            Waktu:
-                                        </label>
-                                        <input
-                                            type="time"
-                                            value={data.waktu_pemasangan}
-                                            onChange={(e) =>
-                                                setData(
-                                                    "waktu_pemasangan",
-                                                    e.target.value
-                                                )
-                                            }
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            required
-                                        />
-                                        {errors.waktu_pemasangan && (
-                                            <p className="text-red-500 text-xs mt-1">
-                                                {errors.waktu_pemasangan}
-                                            </p>
-                                        )}
-                                    </div>
+                        <div>
+                            <h4 className="font-semibold text-gray-800 mb-2">Jadwal Pembongkaran</h4>
+                            <div className="flex gap-4">
+                                <div className="flex-1">
+                                    <InputLabel htmlFor="tanggal_pembongkaran" value="Tanggal" />
+                                    <TextInput
+                                        id="tanggal_pembongkaran"
+                                        type="date"
+                                        value={data.tanggal_pembongkaran}
+                                        onChange={(e) => setData("tanggal_pembongkaran", e.target.value)}
+                                        className="mt-1 block w-full"
+                                        required
+                                    />
+                                    <InputError message={errors.tanggal_pembongkaran} className="mt-2" />
+                                </div>
+                                <div className="flex-1">
+                                    <InputLabel htmlFor="waktu_pembongkaran" value="Waktu" />
+                                    <TextInput
+                                        id="waktu_pembongkaran"
+                                        type="time"
+                                        value={data.waktu_pembongkaran}
+                                        onChange={(e) => setData("waktu_pembongkaran", e.target.value)}
+                                        className="mt-1 block w-full"
+                                        required
+                                    />
+                                    <InputError message={errors.waktu_pembongkaran} className="mt-2" />
                                 </div>
                             </div>
-
-                            {/* Jadwal Pembongkaran */}
-                            <div>
-                                <h4 className="font-medium mb-2">
-                                    Jadwal Pembongkaran
-                                </h4>
-                                <div className="flex gap-4">
-                                    <div className="flex-1">
-                                        <label className="block text-sm text-gray-600 mb-1">
-                                            Tanggal:
-                                        </label>
-                                        <input
-                                            type="date"
-                                            value={data.tanggal_pembongkaran}
-                                            onChange={(e) =>
-                                                setData(
-                                                    "tanggal_pembongkaran",
-                                                    e.target.value
-                                                )
-                                            }
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            required
-                                        />
-                                        {errors.tanggal_pembongkaran && (
-                                            <p className="text-red-500 text-xs mt-1">
-                                                {errors.tanggal_pembongkaran}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div className="flex-1">
-                                        <label className="block text-sm text-gray-600 mb-1">
-                                            Waktu:
-                                        </label>
-                                        <input
-                                            type="time"
-                                            value={data.waktu_pembongkaran}
-                                            onChange={(e) =>
-                                                setData(
-                                                    "waktu_pembongkaran",
-                                                    e.target.value
-                                                )
-                                            }
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            required
-                                        />
-                                        {errors.waktu_pembongkaran && (
-                                            <p className="text-red-500 text-xs mt-1">
-                                                {errors.waktu_pembongkaran}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Tombol Aksi */}
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={handleCloseModal}
-                                    className="flex-1 px-4 py-2 text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
-                                    disabled={processing}
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleSubmit}
-                                    className="flex-1 px-4 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50"
-                                    disabled={processing}
-                                >
-                                    {processing ? "Menyimpan..." : "Simpan"}
-                                </button>
-                            </div>
+                        </div>
+                        <div className="flex gap-3 pt-4 border-t">
+                            <Button type="button" variant="secondary" onClick={handleCloseSchedulingModal} className="w-full" disabled={processing}>
+                                Batal
+                            </Button>
+                            <Button type="submit" variant="primary" className="w-full" disabled={processing}>
+                                {processing ? "Menyimpan..." : "Simpan Jadwal"}
+                            </Button>
                         </div>
                     </div>
-                </div>
-            )}
+                </form>
+            </Modal>
         </PengelolaLayout>
     );
 }
