@@ -1,28 +1,42 @@
 Folder PATH listing for volume DATA
 Volume serial number is 1026-415E
 D:\INFORMATIKA - UPNYK 2023\SEMESTER IV\REKAYASA PERANGKAT LUNAK IF-B\DEVELOPMENT\PMAQTENDA\APP
++---Console
+|   \---Commands
 +---Http
 |   +---Controllers
 |   |   |   Controller.php
+|   |   |   FaqController.php
 |   |   |   JadwalController.php
+|   |   |   LupaIdController.php
 |   |   |   PelangganController.php
 |   |   |   PenyewaanController.php
 |   |   |   ProfileController.php
 |   |   |   TendaController.php
 |   |   |   WelcomeController.php
 |   |   |   
-|   |   \---Auth
-|   |           AuthenticatedSessionController.php
-|   |           ConfirmablePasswordController.php
-|   |           EmailVerificationNotificationController.php
-|   |           EmailVerificationPromptController.php
-|   |           NewPasswordController.php
-|   |           PasswordController.php
-|   |           PasswordResetLinkController.php
-|   |           RegisteredUserController.php
-|   |           VerifyEmailController.php
+|   |   +---Auth
+|   |   |       AuthenticatedSessionController.php
+|   |   |       ConfirmablePasswordController.php
+|   |   |       EmailVerificationNotificationController.php
+|   |   |       EmailVerificationPromptController.php
+|   |   |       NewPasswordController.php
+|   |   |       PasswordController.php
+|   |   |       PasswordResetLinkController.php
+|   |   |       RegisteredUserController.php
+|   |   |       VerifyEmailController.php
+|   |   |       
+|   |   +---Pengelola
+|   |   |       DashboardController.php
+|   |   |       PenjadwalanController.php
+|   |   |       PenyewaanController.php
+|   |   |       TendaController.php
+|   |   |       
+|   |   \---Petugas
+|   |           DashboardController.php
 |   |           
 |   +---Middleware
+|   |       CheckRole.php
 |   |       HandleInertiaRequests.php
 |   |       
 |   \---Requests
@@ -59,6 +73,12 @@ D:\INFORMATIKA - UPNYK 2023\SEMESTER IV\REKAYASA PERANGKAT LUNAK IF-B\DEVELOPMEN
 |       2025_05_22_130157_create_penyewaans_table.php
 |       2025_05_22_130208_create_jadwals_table.php
 |       2025_05_22_131414_add_hak_akses_to_users_table.php
+|       2025_05_22_182337_add_isi_paket_to_tenda_table.php
+|       2025_05_25_105530_add_jumlah_tenda_to_penyewaan_table.php
+|       2025_05_27_140549_modify_id_penyewaan_in_penyewaan_table.php
+|       2025_06_04_105757_update_status_enum_in_penyewaan_table.php
+|       2025_06_08_055429_add_waktu_to_jadwal_table.php
+|       2025_06_08_161422_update_status_enum_on_jadwal_table.php
 |       
 \---seeders
         DatabaseSeeder.php
@@ -73,6 +93,7 @@ D:\INFORMATIKA - UPNYK 2023\SEMESTER IV\REKAYASA PERANGKAT LUNAK IF-B\DEVELOPMEN
 +---js
 |   |   app.jsx
 |   |   bootstrap.js
+|   |   ziggy.js
 |   |   
 |   +---Components
 |   |       ApplicationLogo.jsx
@@ -86,14 +107,18 @@ D:\INFORMATIKA - UPNYK 2023\SEMESTER IV\REKAYASA PERANGKAT LUNAK IF-B\DEVELOPMEN
 |   |       Modal.jsx
 |   |       Navbar.jsx
 |   |       NavLink.jsx
+|   |       Pagination.jsx
 |   |       PrimaryButton.jsx
 |   |       ResponsiveNavLink.jsx
 |   |       SecondaryButton.jsx
+|   |       TextArea.jsx
 |   |       TextInput.jsx
 |   |       
 |   +---Layouts
 |   |       AuthenticatedLayout.jsx
 |   |       GuestLayout.jsx
+|   |       PengelolaLayout.jsx
+|   |       PetugasLayout.jsx
 |   |       
 |   \---Pages
 |       |   Dashboard.jsx
@@ -107,6 +132,38 @@ D:\INFORMATIKA - UPNYK 2023\SEMESTER IV\REKAYASA PERANGKAT LUNAK IF-B\DEVELOPMEN
 |       |       ResetPassword.jsx
 |       |       VerifyEmail.jsx
 |       |       
+|       +---Faq
+|       |       Index.jsx
+|       |       
+|       +---Pengelola
+|       |   |   Dashboard.jsx
+|       |   |   
+|       |   +---Penjadwalan
+|       |   |       Index.jsx
+|       |   |       Show.jsx
+|       |   |       
+|       |   +---Penyewaan
+|       |   |       Index.jsx
+|       |   |       Show.jsx
+|       |   |       
+|       |   \---Tenda
+|       |           Create.jsx
+|       |           Edit.jsx
+|       |           Index.jsx
+|       |           
+|       +---Penyewaan
+|       |       CekForm.jsx
+|       |       Confirm.jsx
+|       |       Create.jsx
+|       |       Detail.jsx
+|       |       Failure.jsx
+|       |       LupaIdForm.jsx
+|       |       Success.jsx
+|       |       
+|       +---Petugas
+|       |       Dashboard.jsx
+|       |       Show.jsx
+|       |       
 |       \---Profile
 |           |   Edit.jsx
 |           |   
@@ -116,5 +173,8 @@ D:\INFORMATIKA - UPNYK 2023\SEMESTER IV\REKAYASA PERANGKAT LUNAK IF-B\DEVELOPMEN
 |                   UpdateProfileInformationForm.jsx
 |                   
 \---views
-        app.blade.php
-        
+    |   app.blade.php
+    |   
+    \---invoices
+            penyewaan.blade.php
+            
