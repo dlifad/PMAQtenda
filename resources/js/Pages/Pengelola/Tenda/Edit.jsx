@@ -127,9 +127,12 @@ export default function Edit({ auth, tenda }) {
                     </div>
                     
                     <div className="flex items-center justify-end space-x-4 mt-6">
-                        <Button as={Link} href={route('pengelola.tenda.index')} variant="neutral">
-                            Batal
-                        </Button>
+                        <Link href={route('pengelola.tenda.index')}>
+                            <Button type="button" variant="neutral">
+                                Batal
+                            </Button>
+                        </Link>
+
                         <Button type="submit" variant="success" disabled={processing}>
                             {processing ? 'Memperbarui...' : 'Update'}
                         </Button>
