@@ -60,8 +60,8 @@ export default function Show({ auth, penyewaanDetail }) {
     const getCancelButtonText = () => {
         const status = penyewaanDetail.status?.toLowerCase();
         if (status === "menunggu") return "Tolak";
-        if (status === "terjadwal") return "Batal";
-        return "Batal";
+        if (status === "terjadwal") return "Batalkan";
+        return "Batalkan";
     };
 
     // Handler untuk Modal Penolakan
